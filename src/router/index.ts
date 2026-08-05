@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import Onboarding from '../views/Onboarding.vue'
 import AgentList from '../views/AgentList.vue'
 import AgentDashboardLayout from '../views/AgentDashboardLayout.vue'
 import AgentPersona from '../views/tabs/AgentPersona.vue'
@@ -10,7 +13,22 @@ import AgentChatConsole from '../views/tabs/AgentChatConsole.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/agents'
+    redirect: '/login'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
+  },
+  {
+    path: '/onboarding',
+    name: 'Onboarding',
+    component: Onboarding
   },
   {
     path: '/agents',

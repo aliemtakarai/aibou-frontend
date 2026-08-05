@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { mockAgents } from '../utils/mockData'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 const selectAgent = (id: string) => {
   router.push(`/agent/${id}/chat`) // direct to chat console by default
@@ -43,6 +44,54 @@ const activeSettingsTab = ref<'password' | 'subscription'>('password')
 const showSettingsToast = ref(false)
 const settingsToastMessage = ref('')
 
+const selectedPlan = ref('Pro')
+
+const selectPlan = (planName: string) => {
+  if (selectedPlan.value === planName) return
+  selectedPlan.value = planName
+  settingsToastMessage.value = `Paket langganan berhasil diubah ke ${planName}!`
+  showSettingsToast.value = true
+  setTimeout(() => {
+    showSettingsToast.value = false
+  }, 2500)
+}
+
+const currentPlanDetails = computed(() => {
+  if (selectedPlan.value === 'Pro') {
+    return {
+      name: 'Aibou Pro SaaS',
+      price: 'Rp 1.499.000',
+      features: [
+        'Hingga 3 Agen AI Aktif secara bersamaan.',
+        'Basis Pengetahuan RAG (Maksimal 100 Dokumen Vektor).',
+        'Integrasi Google Sheets & Webhook API dasar.'
+      ]
+    }
+  } else if (selectedPlan.value === 'Ultra') {
+    return {
+      name: 'Aibou Ultra Premium',
+      price: 'Rp 2.999.000',
+      features: [
+        'Hingga 10 Agen AI Aktif secara bersamaan.',
+        'Basis Pengetahuan RAG (Maksimal 1.000 Dokumen Vektor).',
+        'Semua Koneksi Keahlian (Midtrans, WhatsApp Alerts, n8n).',
+        'Prioritas Server Menengah (Kecepatan respon ~1.2s).'
+      ]
+    }
+  } else {
+    return {
+      name: 'Aibou Max Enterprise',
+      price: 'Rp 5.999.000',
+      features: [
+        'Jumlah Agen AI Aktif Tanpa Batas.',
+        'Basis Pengetahuan RAG & File Dokumen Tanpa Batas.',
+        'Akses API developer mentah & pemicu workflow tak terbatas.',
+        'Server Dedicated Utama dengan latensi super cepat (<1.0s).'
+      ]
+    }
+  }
+})
+
 const openSettings = () => {
   showUserDropdown.value = false
   showSettingsModal.value = true
@@ -50,7 +99,8 @@ const openSettings = () => {
 
 const triggerLogout = () => {
   showUserDropdown.value = false
-  alert('Anda telah berhasil keluar dari sistem.')
+  // Redirect to login page
+  router.push('/login')
 }
 
 const updatePassword = () => {
@@ -71,21 +121,50 @@ const updatePassword = () => {
     showSettingsToast.value = false
   }, 3000)
 }
+
+const showGlobalToast = ref(false)
+const globalToastMessage = ref('')
+
+onMounted(() => {
+  if (route.query.welcome === 'true') {
+    const planName = (route.query.plan as string) || 'Ultra'
+    selectedPlan.value = planName
+    globalToastMessage.value = `Paket Aibou ${planName} Anda telah aktif. Asisten Anda siap dikonfigurasi!`
+    showGlobalToast.value = true
+    
+    // Clear URL query parameters silently
+    router.replace({ query: {} })
+    
+    setTimeout(() => {
+      showGlobalToast.value = false
+    }, 5000)
+  }
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-[#f4f7f6] text-[#0f172a] p-6 md:p-10 font-sans relative overflow-hidden">
+    <!-- Global Toast Notification -->
+    <transition name="toast-slide">
+      <div 
+        v-if="showGlobalToast" 
+        class="fixed top-6 right-6 bg-[#0f172a] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 z-50 flex items-center space-x-3 backdrop-blur-md animate-fade-in"
+      >
+        <span class="w-2.5 h-2.5 rounded-full bg-[#bef264] animate-pulse"></span>
+        <div class="flex flex-col text-left">
+          <span class="font-bold tracking-wide">Selamat Datang</span>
+          <span class="text-[10px] text-slate-400 mt-0.5">{{ globalToastMessage }}</span>
+        </div>
+      </div>
+    </transition>
     <!-- Soft light green gradient glow -->
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_-20%,rgba(190,242,100,0.12),rgba(255,255,255,0))] pointer-events-none"></div>
 
     <div class="max-w-6xl mx-auto relative z-10 space-y-8">
       <!-- Navbar Row -->
       <div class="flex items-center justify-between border-b border-slate-200/60 pb-4">
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-xl bg-[#bef264]/20 border border-[#bef264]/40 flex items-center justify-center text-[#3f6212] font-black shadow-sm select-none">
-            A
-          </div>
-          <span class="text-sm font-black text-[#0f172a] tracking-tight uppercase">aibou console</span>
+        <div class="flex items-center">
+          <img src="/logo.png" alt="Aibou Logo" class="h-12 object-contain" />
         </div>
 
         <!-- User Profile Dropdown Container -->
@@ -409,16 +488,16 @@ const updatePassword = () => {
             </div>
 
             <!-- 2. Subscription Tab -->
-            <div v-if="activeSettingsTab === 'subscription'" class="space-y-4">
+            <div v-if="activeSettingsTab === 'subscription'" class="space-y-5">
               <!-- Active Plan Details -->
               <div class="bg-[#f4f7f6]/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="text-[9px] text-[#3f6212] font-bold uppercase tracking-wider bg-[#bef264]/25 px-2 py-0.5 rounded-full border border-[#bef264]/40">Paket Aktif</span>
-                    <h4 class="text-xs font-black text-[#0f172a] mt-1.5">Aibou Pro SaaS</h4>
+                    <h4 class="text-xs font-black text-[#0f172a] mt-1.5">{{ currentPlanDetails.name }}</h4>
                   </div>
                   <div class="text-right">
-                    <span class="text-xs font-extrabold text-[#0f172a]">Rp 1.499.000</span>
+                    <span class="text-xs font-extrabold text-[#0f172a]">{{ currentPlanDetails.price }}</span>
                     <span class="text-[9px] text-slate-400 block mt-0.5">/ bulan</span>
                   </div>
                 </div>
@@ -435,21 +514,59 @@ const updatePassword = () => {
                 </div>
               </div>
 
+              <!-- Package Tier Selector (Pro, Ultra, Max) -->
+              <div class="space-y-2">
+                <label class="block text-[10px] font-semibold text-slate-450 uppercase tracking-wider">Pilih Paket Langganan</label>
+                <div class="grid grid-cols-3 gap-3">
+                  <!-- Pro Package -->
+                  <div 
+                    @click="selectPlan('Pro')"
+                    :class="selectedPlan === 'Pro' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
+                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                  >
+                    <span class="text-xs font-black text-[#0f172a] block">Pro</span>
+                    <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 1.49M</span>
+                    <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Pro'">Aktif</span>
+                    <span class="text-[8px] text-slate-450 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Pro</span>
+                  </div>
+
+                  <!-- Ultra Package -->
+                  <div 
+                    @click="selectPlan('Ultra')"
+                    :class="selectedPlan === 'Ultra' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
+                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                  >
+                    <span class="text-xs font-black text-[#0f172a] block">Ultra</span>
+                    <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 2.99M</span>
+                    <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Ultra'">Aktif</span>
+                    <span class="text-[8px] text-slate-450 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Ultra</span>
+                  </div>
+
+                  <!-- Max Package -->
+                  <div 
+                    @click="selectPlan('Max')"
+                    :class="selectedPlan === 'Max' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
+                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                  >
+                    <span class="text-xs font-black text-[#0f172a] block">Max</span>
+                    <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 5.99M</span>
+                    <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Max'">Aktif</span>
+                    <span class="text-[8px] text-slate-455 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Max</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- Subscription Features List -->
               <div class="space-y-2">
-                <label class="block text-[10px] font-semibold text-slate-450 uppercase tracking-wider">Fitur Paket Pro</label>
-                <ul class="text-[10px] text-slate-655 space-y-1.5 pl-1 font-medium">
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
-                    <span>Deploy tak terbatas untuk Agen AI</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
-                    <span>RAG Google Drive tak terbatas (mendukung >10.000 dokumen)</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
-                    <span>Akses penuh Pipeline Google Sheets & Webhook API kustom</span>
+                <label class="block text-[10px] font-semibold text-slate-450 uppercase tracking-wider">Cakupan & Fitur Terpilih</label>
+                <ul class="text-[10px] text-slate-655 space-y-1.5 pl-1 font-semibold">
+                  <li 
+                    v-for="(feature, fidx) in currentPlanDetails.features" 
+                    :key="fidx" 
+                    class="flex items-start space-x-2"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#bef264] mt-1.5 flex-shrink-0"></span>
+                    <span class="leading-normal">{{ feature }}</span>
                   </li>
                 </ul>
               </div>
@@ -476,4 +593,19 @@ const updatePassword = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.toast-slide-enter-active,
+.toast-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast-slide-enter-from {
+  transform: translateY(-20px) scale(0.95);
+  opacity: 0;
+}
+.toast-slide-leave-to {
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+}
+</style>
 

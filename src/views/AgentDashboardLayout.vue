@@ -83,17 +83,6 @@ const tabs = [
           </router-link>
         </div>
 
-        <!-- Footnote status indicator -->
-        <div class="hidden md:block p-3.5 bg-[#f4f7f6] rounded-xl border border-slate-200/60 text-[10px] text-slate-500 space-y-1.5">
-          <div class="flex justify-between items-center">
-            <span>Mesin Model</span>
-            <span class="text-slate-700 font-bold font-mono">Gemini 1.5 Pro</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span>Latensi</span>
-            <span class="text-slate-700 font-bold font-mono">~1.2s</span>
-          </div>
-        </div>
       </aside>
 
       <!-- Active Tab View Outlet -->
