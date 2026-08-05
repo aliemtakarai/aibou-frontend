@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AlertBanner from '../components/ui/AlertBanner.vue'
+import Card from '../components/ui/Card.vue'
+import Button from '../components/ui/Button.vue'
 
 const router = useRouter()
 
@@ -61,7 +64,7 @@ const handleRegister = () => {
     <div class="absolute bottom-[-10%] right-[10%] w-[450px] h-[450px] bg-[#60a5fa]/8 rounded-full blur-[130px] pointer-events-none z-0"></div>
 
     <!-- Center Card Container -->
-    <div class="w-full max-w-md bg-white/80 border border-slate-200/80 rounded-3xl p-8 shadow-[0_20px_50px_rgba(15,23,42,0.035)] backdrop-blur-md space-y-6 my-8 relative z-10">
+    <Card glass rounded="rounded-3xl" padding="p-8" shadow="shadow-[0_20px_50px_rgba(15,23,42,0.035)]" class="w-full max-w-md space-y-6 my-8 z-10">
       
       <!-- Logo and App Name -->
       <div class="flex flex-col items-center text-center space-y-4">
@@ -73,17 +76,11 @@ const handleRegister = () => {
       </div>
 
       <!-- Error Panel banner -->
-      <transition name="fade">
-        <div 
-          v-if="errorMessage"
-          class="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-4 py-3 rounded-xl flex items-center space-x-3 animate-fade-in"
-        >
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span class="font-bold leading-relaxed">{{ errorMessage }}</span>
-        </div>
-      </transition>
+      <AlertBanner 
+        v-if="errorMessage"
+        type="error"
+        :message="errorMessage"
+      />
 
       <!-- Main Form fields -->
       <form @submit.prevent="handleRegister" class="space-y-4">
@@ -192,18 +189,15 @@ const handleRegister = () => {
         </div>
 
         <!-- Submit Button -->
-        <button 
-          type="submit"
-          :disabled="isLoading"
-          :class="isLoading ? 'bg-slate-800/80 cursor-wait' : 'bg-gradient-to-r from-[#0f172a] to-slate-800 hover:from-slate-900 hover:to-black hover:shadow-[0_8px_25px_rgba(15,23,42,0.12)] cursor-pointer active:scale-98'"
-          class="w-full text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2 pt-2"
+        <Button 
+          variant="primary" 
+          size="lg" 
+          fullWidth 
+          :loading="isLoading"
+          class="pt-2"
         >
-          <svg v-if="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span>{{ isLoading ? 'Mendaftarkan Akun...' : 'Daftar Akun Baru' }}</span>
-        </button>
+          <span>Daftar Akun Baru</span>
+        </Button>
       </form>
 
       <!-- Redirect back to login -->
@@ -214,7 +208,7 @@ const handleRegister = () => {
         </router-link>
       </p>
 
-    </div>
+    </Card>
   </div>
 </template>
 

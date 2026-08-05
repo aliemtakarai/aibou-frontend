@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SvgIcon from '../../components/ui/SvgIcon.vue'
+import Card from '../../components/ui/Card.vue'
+import Button from '../../components/ui/Button.vue'
+import ToggleSwitch from '../../components/ui/ToggleSwitch.vue'
 
 // Category and filter state
 const searchQuery = ref('')
@@ -213,33 +216,33 @@ const testWebhook = () => {
     <!-- Quick Store Info Metrics Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <!-- Total Available -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-655 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
         <div class="space-y-0.5">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Koleksi Marketplace</span>
-          <span class="text-sm font-extrabold text-[#0f172a]">{{ toolsList.length }} Alat & Keahlian</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Alat Tersedia</span>
+          <span class="text-sm font-extrabold text-[#0f172a]">{{ toolsList.length }} Alat Marketplace</span>
         </div>
-      </div>
+      </Card>
 
       <!-- Total Installed -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
-        <div class="w-10 h-10 rounded-xl bg-[#bef264]/10 border border-[#bef264]/20 flex items-center justify-center text-[#3f6212] flex-shrink-0">
+      <Card padding="p-5" class="flex items-center space-x-4">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-655 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div class="space-y-0.5">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Keahlian Aktif</span>
-          <span class="text-sm font-extrabold text-[#0f172a]">{{ totalInstalled }} Alat Terpasang</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Terpasang Di Agen</span>
+          <span class="text-sm font-extrabold text-[#0f172a]">{{ totalInstalled }} Alat Aktif</span>
         </div>
-      </div>
+      </Card>
 
       <!-- Developer mcp status -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-655 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
@@ -249,7 +252,7 @@ const testWebhook = () => {
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Protokol Integrasi</span>
           <span class="text-sm font-extrabold text-[#0f172a]">MCP Gateway v2.4</span>
         </div>
-      </div>
+      </Card>
     </div>
 
     <!-- MAIN CHROME STORE MARKETPLACE WORKSPACE -->
@@ -258,7 +261,7 @@ const testWebhook = () => {
       <!-- LEFT SIDEBAR: Chrome-store categories & status filters (3 cols) -->
       <aside class="lg:col-span-3 space-y-6">
         <!-- Status Filter Box -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-sm space-y-4">
+        <Card padding="p-4.5" class="space-y-4">
           <div class="text-[9.5px] font-black text-slate-400 uppercase tracking-widest px-1">Filter Status</div>
           <div class="space-y-1">
             <button 
@@ -286,10 +289,10 @@ const testWebhook = () => {
               <span class="text-[10px] font-mono opacity-60">({{ toolsList.length - totalInstalled }})</span>
             </button>
           </div>
-        </div>
+        </Card>
 
         <!-- Categories Sidebar Selection -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-sm space-y-4">
+        <Card padding="p-4.5" class="space-y-4">
           <div class="text-[9.5px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori Pilihan</div>
           <div class="space-y-1">
             <button 
@@ -302,14 +305,14 @@ const testWebhook = () => {
               {{ cat }}
             </button>
           </div>
-        </div>
+        </Card>
       </aside>
 
       <!-- RIGHT PANEL: Store Products Grid (9 cols) -->
       <main class="lg:col-span-9 space-y-6">
         
         <!-- Hero Promo Card -->
-        <div class="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] border border-slate-800 rounded-3xl p-7 shadow-md relative overflow-hidden text-white flex flex-col md:flex-row justify-between items-center gap-6">
+        <Card rounded="rounded-3xl" padding="p-7" class="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(190,242,100,0.1),transparent_70%)] pointer-events-none"></div>
           
           <div class="space-y-2 relative z-10 max-w-lg">
@@ -324,14 +327,17 @@ const testWebhook = () => {
               <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.904-4.43c.277-.138.568-.22.868-.246L21 16l-4.43-8.904a.87.87 0 00-.246-.868L12 3 9.813 15.904z" />
             </svg>
           </div>
-        </div>
+        </Card>
 
         <!-- Store Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div 
+          <Card 
             v-for="tool in filteredTools"
             :key="tool.id"
-            class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between group relative"
+            hoverable
+            padding="p-5"
+            shadow="shadow-2xs"
+            class="flex flex-col justify-between group"
           >
             <!-- Card Details -->
             <div class="space-y-4">
@@ -366,37 +372,39 @@ const testWebhook = () => {
 
               <div class="flex items-center space-x-2">
                 <!-- Config Button (visible only if configured and enabled) -->
-                <button 
+                <Button 
                   v-if="tool.enabled && tool.configurable"
                   @click="openConfig(tool)"
-                  class="bg-slate-150 hover:bg-slate-200 text-slate-700 font-extrabold text-[10px] px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center space-x-1"
+                  variant="secondary"
+                  size="sm"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span>Atur</span>
-                </button>
+                </Button>
 
                 <!-- Enable/Disable Main CTA -->
-                <button 
+                <Button 
                   @click="toggleToolStatus(tool)"
-                  :class="tool.enabled ? 'bg-[#bef264]/20 border border-[#bef264]/40 hover:bg-[#bef264]/30 text-[#3f6212] font-black' : 'bg-[#0f172a] hover:bg-slate-800 text-white font-bold'"
-                  class="text-[10px] px-3.5 py-2.5 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center space-x-1"
+                  :variant="tool.enabled ? 'secondary' : 'primary'"
+                  :class="tool.enabled ? 'bg-[#bef264]/20 border border-[#bef264]/40 hover:bg-[#bef264]/30 text-[#3f6212] font-black' : ''"
+                  size="sm"
                 >
                   <span v-if="tool.enabled" class="flex items-center space-x-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-0.5"></span>
                     <span>Aktif</span>
                   </span>
                   <span v-else>Pasang ke Agen</span>
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Empty state grid -->
-        <div v-if="filteredTools.length === 0" class="bg-white border border-slate-200 border-dashed rounded-3xl p-16 text-center space-y-3">
+        <Card v-if="filteredTools.length === 0" padding="p-16" rounded="rounded-3xl" class="border-dashed text-center space-y-3">
           <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -404,7 +412,7 @@ const testWebhook = () => {
           </div>
           <h3 class="text-xs font-black text-slate-700">Tidak ada alat yang ditemukan</h3>
           <p class="text-[10.5px] text-slate-400 max-w-xs mx-auto">Coba cari kata kunci lain atau pilih kategori yang berbeda dari panel samping.</p>
-        </div>
+        </Card>
 
       </main>
 
@@ -416,7 +424,7 @@ const testWebhook = () => {
         v-if="showConfigModal && selectedTool" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
       >
-        <div class="bg-white border border-slate-200 rounded-3xl shadow-xl w-full max-w-xl max-h-[85vh] overflow-hidden flex flex-col justify-between transform transition-all duration-300">
+        <Card rounded="rounded-3xl" padding="p-0" shadow="shadow-xl" class="w-full max-w-xl max-h-[85vh] overflow-hidden flex flex-col justify-between transform transition-all duration-300">
           
           <!-- Modal Header -->
           <div class="p-5.5 border-b border-slate-100 flex items-start justify-between">
@@ -454,13 +462,7 @@ const testWebhook = () => {
             <!-- Status Switcher inside details page -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
               <span class="font-bold text-slate-700">Status Keaktifan Alat</span>
-              <button 
-                @click="toggleToolStatus(selectedTool)"
-                :class="selectedTool.enabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-655'"
-                class="px-4 py-2 rounded-xl font-bold cursor-pointer transition-all active:scale-95"
-              >
-                {{ selectedTool.enabled ? 'Aktif' : 'Nonaktif' }}
-              </button>
+              <ToggleSwitch v-model="selectedTool.enabled" :label="selectedTool.enabled ? 'Aktif' : 'Nonaktif'" />
             </div>
 
             <!-- DYNAMIC INPUT FIELDS BASED ON TOOL ID -->
@@ -518,13 +520,15 @@ const testWebhook = () => {
                     class="flex-1 bg-[#f8fafc] border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-3 text-xs text-[#0f172a] focus:outline-none font-semibold font-mono"
                     placeholder="https://api.n8n.cloud/webhook/..."
                   />
-                  <button 
+                  <Button 
                     @click="testWebhook"
                     :disabled="testingWebhook"
-                    class="bg-[#0f172a] hover:bg-slate-800 disabled:opacity-50 text-white font-extrabold text-[11px] px-5 rounded-xl transition-colors cursor-pointer"
+                    :loading="testingWebhook"
+                    variant="primary"
+                    class="flex-shrink-0"
                   >
-                    {{ testingWebhook ? 'Menguji...' : 'Kirim Tes' }}
-                  </button>
+                    <span>Kirim Tes</span>
+                  </Button>
                 </div>
               </div>
 
@@ -615,21 +619,21 @@ const testWebhook = () => {
 
           <!-- Modal Footer -->
           <div class="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-end space-x-3.5">
-            <button 
+            <Button 
+              variant="secondary" 
               @click="showConfigModal = false"
-              class="bg-white hover:bg-slate-100 text-slate-700 font-extrabold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition-all cursor-pointer"
             >
               Tutup
-            </button>
-            <button 
+            </Button>
+            <Button 
+              variant="primary" 
               @click="showConfigModal = false"
-              class="bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
             >
               Simpan Setelan Alat
-            </button>
+            </Button>
           </div>
 
-        </div>
+        </Card>
       </div>
     </transition>
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import Card from '../../components/ui/Card.vue'
 import { mockPlaygroundResponses, mockAgents } from '../../utils/mockData'
 import type { Message } from '../../utils/mockData'
 
@@ -103,11 +104,13 @@ watch(agentId, () => {
 
         <!-- Suggested Query Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div 
-            v-for="s in suggestions"
+          <Card 
+            v-for="s in suggestions" 
             :key="s.title"
             @click="selectSuggestion(s.desc)"
-            class="bg-[#f4f7f6]/40 hover:bg-[#f4f7f6]/90 border border-slate-200/80 hover:border-slate-355 rounded-2xl p-4 transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[110px]"
+            clickable
+            padding="p-4"
+            class="bg-[#f4f7f6]/40 hover:bg-[#f4f7f6]/90 border-slate-200/80 hover:border-slate-355 flex flex-col justify-between min-h-[110px]"
           >
             <p class="text-xs font-semibold text-slate-700 group-hover:text-slate-900 leading-normal">
               {{ s.desc }}
@@ -118,7 +121,7 @@ watch(agentId, () => {
                 &rarr;
               </span>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 

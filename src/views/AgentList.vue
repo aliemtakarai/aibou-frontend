@@ -2,6 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { mockAgents } from '../utils/mockData'
 import { useRouter, useRoute } from 'vue-router'
+import StatCard from '../components/ui/StatCard.vue'
+import ToastNotification from '../components/ui/ToastNotification.vue'
+import Card from '../components/ui/Card.vue'
+import Button from '../components/ui/Button.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -145,18 +149,12 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-[#f4f7f6] text-[#0f172a] p-6 md:p-10 font-sans relative overflow-hidden">
     <!-- Global Toast Notification -->
-    <transition name="toast-slide">
-      <div 
-        v-if="showGlobalToast" 
-        class="fixed top-6 right-6 bg-[#0f172a] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 z-50 flex items-center space-x-3 backdrop-blur-md animate-fade-in"
-      >
-        <span class="w-2.5 h-2.5 rounded-full bg-[#bef264] animate-pulse"></span>
-        <div class="flex flex-col text-left">
-          <span class="font-bold tracking-wide">Selamat Datang</span>
-          <span class="text-[10px] text-slate-400 mt-0.5">{{ globalToastMessage }}</span>
-        </div>
-      </div>
-    </transition>
+    <ToastNotification 
+      v-model:show="showGlobalToast"
+      title="Selamat Datang"
+      :message="globalToastMessage"
+      :duration="5000"
+    />
     <!-- Soft light green gradient glow -->
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_-20%,rgba(190,242,100,0.12),rgba(255,255,255,0))] pointer-events-none"></div>
 
@@ -228,47 +226,37 @@ onMounted(() => {
           </p>
         </div>
 
-        <button 
+        <Button 
           @click="showCreateModal = true"
-          class="bg-[#0f172a] hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm hover:shadow-md transition-all flex items-center space-x-2 cursor-pointer self-start md:self-auto"
+          variant="primary"
+          class="self-start md:self-auto"
         >
           <span class="text-sm font-bold leading-none">+</span>
           <span>Pasang Agen Baru</span>
-        </button>
+        </Button>
       </div>
 
       <!-- Quick Stats Panel -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-        <div class="space-y-1">
-          <span class="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Agen</span>
-          <div class="text-2xl font-bold text-[#0f172a]">{{ mockAgents.length }}</div>
-        </div>
-        <div class="space-y-1 border-l border-slate-100 pl-4">
-          <span class="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider">Obrolan Kotak Masuk Aktif</span>
-          <div class="text-2xl font-bold text-[#4d7c0f] flex items-center space-x-1.5">
-            <span>3</span>
+        <StatCard label="Total Agen" :value="mockAgents.length" />
+        <StatCard label="Obrolan Kotak Masuk Aktif" value="3" highlight border-color="border-l border-slate-100 pl-4">
+          <template #suffix>
             <span class="w-2 h-2 rounded-full bg-[#bef264]"></span>
-          </div>
-        </div>
-        <div class="space-y-1 border-l border-slate-100 pl-4">
-          <span class="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider">Dokumen Disinkronkan</span>
-          <div class="text-2xl font-bold text-[#0f172a]">24 Berkas</div>
-        </div>
-        <div class="space-y-1 border-l border-slate-100 pl-4">
-          <span class="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Engine</span>
-          <div class="text-2xl font-bold text-[#4d7c0f] flex items-center space-x-1">
-            <span class="text-sm font-bold">Operasional</span>
-          </div>
-        </div>
+          </template>
+        </StatCard>
+        <StatCard label="Dokumen Disinkronkan" value="24 Berkas" border-color="border-l border-slate-100 pl-4" />
+        <StatCard label="Status Engine" value="Operasional" highlight border-color="border-l border-slate-100 pl-4" />
       </div>
 
       <!-- Agents Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div 
+        <Card 
           v-for="agent in mockAgents" 
           :key="agent.id"
           @click="selectAgent(agent.id)"
-          class="bg-white border border-slate-200/80 rounded-2xl p-6 hover:border-slate-355 hover:bg-slate-50/20 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] group relative overflow-hidden flex flex-col justify-between min-h-[190px]"
+          hoverable
+          clickable
+          class="group min-h-[190px]"
         >
           <!-- Soft light green hover accent glow -->
           <div class="absolute -right-16 -top-16 w-32 h-32 bg-[#bef264]/5 rounded-full blur-2xl group-hover:bg-[#bef264]/10 transition-all duration-300"></div>
@@ -307,19 +295,20 @@ onMounted(() => {
               <span>&rarr;</span>
             </span>
           </div>
-        </div>
+        </Card>
 
         <!-- Add Agent Placeholder Card -->
-        <div 
+        <Card 
           @click="showCreateModal = true"
-          class="border-2 border-dashed border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 group min-h-[190px]"
+          clickable
+          class="border-2 border-dashed border-slate-200 hover:border-slate-300 min-h-[190px] flex flex-col items-center justify-center text-center group"
         >
           <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-150 flex items-center justify-center text-slate-455 group-hover:text-slate-700 transition-colors shadow-sm mb-3 text-lg font-bold">
             +
           </div>
           <h3 class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Pasang Agen AI Baru</h3>
           <p class="text-slate-400 text-xs mt-1 max-w-[200px]">Buat persona kustom baru dan atur ruang kerja Google Drive.</p>
-        </div>
+        </Card>
       </div>
     </div>
 
@@ -328,9 +317,7 @@ onMounted(() => {
       v-if="showCreateModal" 
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
     >
-      <div 
-        class="bg-white border border-slate-200/80 rounded-2xl p-6 w-full max-w-md shadow-2xl relative space-y-6"
-      >
+      <Card shadow="shadow-2xl" class="w-full max-w-md space-y-6 relative">
         <button 
           @click="showCreateModal = false"
           class="absolute top-4 right-4 text-slate-400 hover:text-slate-750 transition-colors text-xl font-bold cursor-pointer"
@@ -375,31 +362,29 @@ onMounted(() => {
         </div>
 
         <div class="flex items-center justify-end space-x-3 pt-2">
-          <button 
+          <Button 
+            variant="ghost" 
             @click="showCreateModal = false"
-            class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
           >
             Batal
-          </button>
-          <button 
+          </Button>
+          <Button 
+            variant="primary" 
             @click="createAgent"
             :disabled="!newAgentName.trim() || !newAgentRole.trim()"
-            class="bg-[#0f172a] hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-[#0f172a] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
           >
             Pasang Agen
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
 
-    <!-- Settings Modal -->
-    <div 
-      v-if="showSettingsModal" 
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
-    >
+      <!-- Settings Modal -->
       <div 
-        class="bg-white border border-slate-200/80 rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative space-y-6"
+        v-if="showSettingsModal" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
       >
+        <Card shadow="shadow-2xl" class="w-full max-w-2xl space-y-6 relative">
         <!-- Close Button -->
         <button 
           @click="showSettingsModal = false"
@@ -409,13 +394,12 @@ onMounted(() => {
         </button>
 
         <!-- Toast Notification inside settings modal -->
-        <div 
-          v-if="showSettingsToast" 
-          class="absolute top-2 left-6 right-6 bg-[#bef264]/20 border border-[#bef264]/40 text-[#3f6212] text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center space-x-2 z-50 animate-bounce"
-        >
-          <span class="w-2 h-2 rounded-full bg-[#a3e635] animate-pulse"></span>
-          <span class="font-bold">{{ settingsToastMessage }}</span>
-        </div>
+        <ToastNotification 
+          v-model:show="showSettingsToast"
+          title="Notifikasi Pengaturan"
+          :message="settingsToastMessage"
+          :duration="2500"
+        />
 
         <div>
           <h3 class="text-base font-bold text-[#0f172a]">Pengaturan Akun</h3>
@@ -477,20 +461,19 @@ onMounted(() => {
               </div>
 
               <div class="flex justify-end pt-2">
-                <button 
+                <Button 
                   @click="updatePassword"
                   :disabled="!currentPassword || !newPassword || !confirmPassword"
-                  class="bg-[#0f172a] hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
                 >
                   Perbarui Kata Sandi
-                </button>
+                </Button>
               </div>
             </div>
 
             <!-- 2. Subscription Tab -->
             <div v-if="activeSettingsTab === 'subscription'" class="space-y-5">
               <!-- Active Plan Details -->
-              <div class="bg-[#f4f7f6]/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+              <Card padding="p-4" class="bg-[#f4f7f6]/60 border-slate-200/60 space-y-3">
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="text-[9px] text-[#3f6212] font-bold uppercase tracking-wider bg-[#bef264]/25 px-2 py-0.5 rounded-full border border-[#bef264]/40">Paket Aktif</span>
@@ -512,47 +495,53 @@ onMounted(() => {
                     Pembaruan Berikutnya: <span class="text-slate-800 font-bold">05 Sept 2026</span>
                   </div>
                 </div>
-              </div>
+              </Card>
 
               <!-- Package Tier Selector (Pro, Ultra, Max) -->
               <div class="space-y-2">
                 <label class="block text-[10px] font-semibold text-slate-450 uppercase tracking-wider">Pilih Paket Langganan</label>
                 <div class="grid grid-cols-3 gap-3">
                   <!-- Pro Package -->
-                  <div 
+                  <Card 
                     @click="selectPlan('Pro')"
-                    :class="selectedPlan === 'Pro' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
-                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                    clickable
+                    :class="selectedPlan === 'Pro' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : ''"
+                    padding="p-3"
+                    class="text-center select-none flex flex-col justify-between"
                   >
                     <span class="text-xs font-black text-[#0f172a] block">Pro</span>
                     <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 1.49M</span>
                     <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Pro'">Aktif</span>
                     <span class="text-[8px] text-slate-450 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Pro</span>
-                  </div>
+                  </Card>
 
                   <!-- Ultra Package -->
-                  <div 
+                  <Card 
                     @click="selectPlan('Ultra')"
-                    :class="selectedPlan === 'Ultra' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
-                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                    clickable
+                    :class="selectedPlan === 'Ultra' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : ''"
+                    padding="p-3"
+                    class="text-center select-none flex flex-col justify-between"
                   >
                     <span class="text-xs font-black text-[#0f172a] block">Ultra</span>
                     <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 2.99M</span>
                     <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Ultra'">Aktif</span>
                     <span class="text-[8px] text-slate-450 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Ultra</span>
-                  </div>
+                  </Card>
 
                   <!-- Max Package -->
-                  <div 
+                  <Card 
                     @click="selectPlan('Max')"
-                    :class="selectedPlan === 'Max' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'"
-                    class="border rounded-xl p-3 text-center cursor-pointer transition-all duration-200 select-none flex flex-col justify-between"
+                    clickable
+                    :class="selectedPlan === 'Max' ? 'border-[#bef264] bg-[#bef264]/8 shadow-2xs ring-1 ring-[#bef264]/20' : ''"
+                    padding="p-3"
+                    class="text-center select-none flex flex-col justify-between"
                   >
                     <span class="text-xs font-black text-[#0f172a] block">Max</span>
                     <span class="text-[10px] font-bold text-slate-500 mt-1 block">Rp 5.99M</span>
                     <span class="text-[8px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded mt-2 block font-extrabold" v-if="selectedPlan === 'Max'">Aktif</span>
                     <span class="text-[8px] text-slate-455 mt-2 block font-bold hover:text-[#0f172a]" v-else>Pilih Max</span>
-                  </div>
+                  </Card>
                 </div>
               </div>
 
@@ -573,23 +562,25 @@ onMounted(() => {
 
               <!-- Action buttons -->
               <div class="flex items-center justify-between border-t border-slate-100 pt-4 gap-2">
-                <button 
+                <Button 
+                  variant="danger" 
+                  size="sm"
                   @click="alert('Fitur pembatalan langganan sedang diproses.')"
-                  class="text-[10px] text-red-655 hover:text-red-800 hover:bg-red-50/50 px-3 py-2 rounded-xl transition-all cursor-pointer font-bold"
                 >
                   Batalkan Langganan
-                </button>
-                <button 
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="sm"
                   @click="alert('Membuka portal pembayaran...')"
-                  class="bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-[10px] px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
                 >
                   Kelola Metode Pembayaran
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   </div>
 </template>

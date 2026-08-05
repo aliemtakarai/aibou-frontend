@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { mockAgents } from '../../utils/mockData'
 import SvgIcon from '../../components/ui/SvgIcon.vue'
+import Card from '../../components/ui/Card.vue'
+import Button from '../../components/ui/Button.vue'
+import ToastNotification from '../../components/ui/ToastNotification.vue'
 
 const route = useRoute()
 const agentId = computed(() => route.params.id as string)
@@ -89,18 +92,12 @@ const safetyStatus = computed(() => {
 <template>
   <div class="w-full space-y-8 relative" v-if="agent">
     <!-- Toast Notification -->
-    <transition name="toast-slide">
-      <div 
-        v-if="showToast" 
-        class="fixed top-6 right-6 bg-[#0f172a] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 z-50 flex items-center space-x-3 backdrop-blur-md"
-      >
-        <span class="w-2.5 h-2.5 rounded-full bg-[#bef264] animate-pulse"></span>
-        <div class="flex flex-col">
-          <span class="font-bold tracking-wide">Pengaturan Disimpan</span>
-          <span class="text-[10px] text-slate-400">Karakter asisten Anda berhasil diperbarui.</span>
-        </div>
-      </div>
-    </transition>
+    <ToastNotification 
+      v-model:show="showToast"
+      title="Pengaturan Disimpan"
+      message="Karakter asisten Anda berhasil diperbarui."
+      :duration="2500"
+    />
 
     <!-- Header & Action Bar -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
@@ -119,19 +116,20 @@ const safetyStatus = computed(() => {
       
       <!-- Header Actions -->
       <div class="flex items-center space-x-3">
-        <button 
+        <Button 
           @click="saveSettings" 
-          class="w-full md:w-auto bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-[0_4px_14px_rgba(15,23,42,0.15)] active:scale-95 cursor-pointer flex items-center justify-center space-x-2"
+          variant="primary"
+          class="w-full md:w-auto"
         >
           <span>Simpan & Terapkan</span>
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- Quick Insights Metrics Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <!-- Status Keamanan -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -144,10 +142,10 @@ const safetyStatus = computed(() => {
             <span :class="safetyStatus.colorClass" class="w-2.5 h-2.5 rounded-full inline-block"></span>
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- Bahasa Utama -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 11.37 7.31 16.5 3 19" />
@@ -157,10 +155,10 @@ const safetyStatus = computed(() => {
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bahasa Asisten</span>
           <span class="text-sm font-extrabold text-[#0f172a]">Indonesia + {{ secondaryLanguage }}</span>
         </div>
-      </div>
+      </Card>
 
       <!-- Nada Terpilih -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-[#bef264]/10 border border-[#bef264]/20 flex items-center justify-center text-[#3f6212] flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -168,9 +166,9 @@ const safetyStatus = computed(() => {
         </div>
         <div class="space-y-0.5">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Gaya Bicara</span>
-          <span class="text-sm font-extrabold text-[#0f172a]">{{ tone }}</span>
+          <span class="text-sm font-extrabold text-[#0f172a]"> {{ tone }}</span>
         </div>
-      </div>
+      </Card>
     </div>
 
     <!-- Main Workspace Layout Grid -->
@@ -180,7 +178,7 @@ const safetyStatus = computed(() => {
       <div class="lg:col-span-1 space-y-6">
         
         <!-- Identity Config Card -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Profil Asisten</h3>
             <span class="w-2.5 h-2.5 rounded-full bg-[#bef264]"></span>
@@ -249,10 +247,10 @@ const safetyStatus = computed(() => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Live Simulator Preview Card -->
-        <div class="bg-[#0f172a] text-white border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden group">
+        <Card padding="p-6" class="bg-[#0f172a] text-white border-slate-800 group">
           <!-- Subtle layout pattern background -->
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(190,242,100,0.1),transparent_70%)] pointer-events-none"></div>
           
@@ -287,7 +285,7 @@ const safetyStatus = computed(() => {
               <span>Gaya Bicara: <strong class="text-white text-xs font-semibold">{{ tone }}</strong></span>
             </div>
           </div>
-        </div>
+        </Card>
 
       </div>
 
@@ -295,7 +293,7 @@ const safetyStatus = computed(() => {
       <div class="lg:col-span-2 space-y-6">
         
         <!-- Tone & Voice Style Selector -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Gaya Bahasa & Nada Bicara</h3>
@@ -304,12 +302,14 @@ const safetyStatus = computed(() => {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div 
+            <Card 
               v-for="t in tones"
               :key="t.name"
               @click="tone = t.name"
-              :class="tone === t.name ? 'border-[#bef264] bg-[#bef264]/8 shadow-[0_4px_16px_rgba(190,242,100,0.12)] ring-1 ring-[#bef264]/20' : 'border-slate-200/80 bg-white hover:bg-slate-50/50 hover:border-slate-350'"
-              class="border rounded-2xl p-4.5 cursor-pointer transition-all duration-200 group flex items-start space-x-4 select-none"
+              clickable
+              :class="tone === t.name ? 'border-[#bef264] bg-[#bef264]/8 shadow-[0_4px_16px_rgba(190,242,100,0.12)] ring-1 ring-[#bef264]/20' : ''"
+              padding="p-4.5"
+              class="flex items-start space-x-4 select-none"
             >
               <div 
                 :class="tone === t.name ? 'bg-[#bef264] text-[#0f172a] shadow-sm' : 'bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-white group-hover:text-slate-600'"
@@ -327,12 +327,12 @@ const safetyStatus = computed(() => {
                 </div>
                 <p class="text-[10.5px] text-slate-500 leading-relaxed font-medium">{{ t.desc }}</p>
               </div>
-            </div>
+            </Card>
           </div>
-        </div>
+        </Card>
 
         <!-- Compliance Boundaries (Guardrails) -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Pantangan & Aturan Penting</h3>
@@ -386,35 +386,36 @@ const safetyStatus = computed(() => {
               class="flex-1 bg-[#f8fafc] border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-4 py-3 text-xs text-[#0f172a] focus:outline-none transition-all font-semibold" 
               @keydown.enter="addGuardrail"
             />
-            <button 
+            <Button 
+              variant="secondary"
               @click="addGuardrail" 
-              class="bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-extrabold text-xs px-5 py-3 rounded-xl transition-all border border-slate-200/80 cursor-pointer flex items-center justify-center space-x-1.5 flex-shrink-0"
+              class="flex-shrink-0"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
               <span>Tambah Aturan</span>
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
 
       </div>
 
     </div>
 
     <!-- Bottom Save Trigger Banner -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+    <Card padding="p-5" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
       <div class="flex items-center space-x-3">
         <div class="w-2.5 h-2.5 rounded-full bg-[#bef264] animate-ping"></div>
         <p class="text-xs font-semibold text-slate-600">Simpan perubahan Anda agar langsung aktif pada chat asisten.</p>
       </div>
-      <button 
+      <Button 
         @click="saveSettings" 
-        class="w-full sm:w-auto bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer text-center"
+        class="w-full sm:w-auto text-center"
       >
         Simpan & Terapkan Perubahan
-      </button>
-    </div>
+      </Button>
+    </Card>
   </div>
 </template>
 

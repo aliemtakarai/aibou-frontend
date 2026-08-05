@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Card from '../components/ui/Card.vue'
+import Button from '../components/ui/Button.vue'
 
 const router = useRouter()
 
@@ -76,7 +78,7 @@ const completeOnboarding = () => {
     <div class="absolute bottom-[-15%] right-[10%] w-[500px] h-[500px] bg-[#60a5fa]/8 rounded-full blur-[140px] pointer-events-none z-0"></div>
 
     <!-- Main Wizard Card wrapper -->
-    <div class="w-full max-w-2xl bg-white/80 border border-slate-200/80 rounded-3xl p-8 md:p-10 shadow-[0_25px_60px_rgba(15,23,42,0.035)] backdrop-blur-md relative z-10 space-y-8 transition-all duration-500">
+    <Card glass rounded="rounded-3xl" padding="p-8 md:p-10" shadow="shadow-[0_25px_60px_rgba(15,23,42,0.035)]" class="w-full max-w-2xl space-y-8 transition-all duration-500 z-10">
       
       <!-- Top Steps Indicator Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-5">
@@ -115,7 +117,7 @@ const completeOnboarding = () => {
         <!-- Three Steps Illustration Row -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-4">
           <!-- Step 1 info -->
-          <div class="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-2xs">
+          <Card hoverable padding="p-5" shadow="shadow-2xs" class="space-y-3">
             <div class="w-10 h-10 rounded-xl bg-[#bef264]/20 border border-[#bef264]/30 flex items-center justify-center text-[#3f6212] font-black">
               1
             </div>
@@ -123,10 +125,10 @@ const completeOnboarding = () => {
             <p class="text-[10.5px] text-slate-450 leading-relaxed font-semibold">
               Atur nama asisten, peran spesifik, gaya bicara (formal/santai), serta batasan aturan/pantangan asisten.
             </p>
-          </div>
+          </Card>
 
           <!-- Step 2 info -->
-          <div class="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-2xs">
+          <Card hoverable padding="p-5" shadow="shadow-2xs" class="space-y-3">
             <div class="w-10 h-10 rounded-xl bg-[#bef264]/20 border border-[#bef264]/30 flex items-center justify-center text-[#3f6212] font-black">
               2
             </div>
@@ -134,10 +136,10 @@ const completeOnboarding = () => {
             <p class="text-[10.5px] text-slate-450 leading-relaxed font-semibold">
               Masukkan file SOP, dokumen PDF, teks tanya-jawab produk, atau sinkronkan langsung dengan Google Drive bisnis Anda.
             </p>
-          </div>
+          </Card>
 
           <!-- Step 3 info -->
-          <div class="bg-white border border-slate-200/60 p-5 rounded-2xl space-y-3 shadow-2xs">
+          <Card hoverable padding="p-5" shadow="shadow-2xs" class="space-y-3">
             <div class="w-10 h-10 rounded-xl bg-[#bef264]/20 border border-[#bef264]/30 flex items-center justify-center text-[#3f6212] font-black">
               3
             </div>
@@ -145,17 +147,14 @@ const completeOnboarding = () => {
             <p class="text-[10.5px] text-slate-450 leading-relaxed font-semibold">
               Hubungkan asisten Anda ke WhatsApp untuk membalas obrolan pembeli, dan ekspor data prospek otomatis ke Google Sheets.
             </p>
-          </div>
+          </Card>
         </div>
 
         <!-- Step 1 Footer CTA -->
         <div class="pt-6 border-t border-slate-100 flex justify-end">
-          <button 
-            @click="nextStep"
-            class="bg-[#0f172a] hover:bg-slate-800 hover:shadow-[0_8px_25px_rgba(15,23,42,0.12)] text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all active:scale-98 flex items-center space-x-1.5 cursor-pointer"
-          >
+          <Button variant="primary" size="lg" @click="nextStep">
             <span>Pilih Paket Langganan &rarr;</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -170,17 +169,19 @@ const completeOnboarding = () => {
 
         <!-- 3 Packages Cards Grid (Pro, Ultra, Max) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div 
+          <Card 
             v-for="plan in plans" 
             :key="plan.id"
             @click="selectedPlan = plan.id"
-            :class="selectedPlan === plan.id ? 'border-[#bef264] bg-[#bef264]/6 shadow-xs ring-1 ring-[#bef264]/20 scale-102' : 'border-slate-200 hover:border-slate-350 hover:bg-slate-50/50'"
-            class="border rounded-2xl p-4.5 cursor-pointer transition-all duration-300 flex flex-col justify-between relative group"
+            clickable
+            :class="selectedPlan === plan.id ? 'border-[#bef264] bg-[#bef264]/6 ring-1 ring-[#bef264]/20 scale-102' : ''"
+            padding="p-4.5"
+            class="flex flex-col justify-between relative group"
           >
             <!-- Recommended Badge overlay -->
             <span 
               v-if="plan.recommended"
-              class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#0c1220] text-[#bef264] border border-slate-800 text-[8px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm"
+              class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#0c1220] text-[#bef264] border border-slate-800 text-[8px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-sm animate-pulse"
             >
               Rekomendasi
             </span>
@@ -206,11 +207,11 @@ const completeOnboarding = () => {
                 {{ selectedPlan === plan.id ? 'Terpilih' : 'Pilih Paket' }}
               </span>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Selected Plan Limits & Feature lists -->
-        <div class="bg-[#f8fafc]/80 border border-slate-200/60 p-5 rounded-2xl space-y-3">
+        <Card padding="p-5" shadow="shadow-2xs" class="bg-[#f8fafc]/80 border-slate-200/60 space-y-3">
           <div class="flex justify-between items-center pb-2 border-b border-slate-100">
             <h4 class="text-xs font-black text-slate-800">Cakupan Fitur Paket: Aibou {{ activePlanDetails.name }}</h4>
             <span class="text-xs font-extrabold text-[#0f172a]">{{ activePlanDetails.price }} <span class="text-[9px] text-slate-450 font-normal">/bulan</span></span>
@@ -226,27 +227,21 @@ const completeOnboarding = () => {
               <span>{{ feat }}</span>
             </li>
           </ul>
-        </div>
+        </Card>
 
         <!-- Step 2 Footer CTAs -->
         <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
-          <button 
-            @click="prevStep"
-            class="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors py-3 cursor-pointer"
-          >
+          <Button variant="ghost" size="lg" @click="prevStep">
             &larr; Kembali
-          </button>
+          </Button>
           
-          <button 
-            @click="completeOnboarding"
-            class="bg-[#0f172a] hover:bg-slate-800 hover:shadow-[0_8px_25px_rgba(15,23,42,0.12)] text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all active:scale-98 flex items-center space-x-1.5 cursor-pointer"
-          >
+          <Button variant="primary" size="lg" @click="completeOnboarding">
             <span>Aktifkan Paket & Mulai Sekarang</span>
-          </button>
+          </Button>
         </div>
       </div>
 
-    </div>
+    </Card>
   </div>
 </template>
 

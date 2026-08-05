@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { mockAgents } from '../../utils/mockData'
 import SvgIcon from '../../components/ui/SvgIcon.vue'
+import ToastNotification from '../../components/ui/ToastNotification.vue'
+import ToggleSwitch from '../../components/ui/ToggleSwitch.vue'
+import Card from '../../components/ui/Card.vue'
+import Button from '../../components/ui/Button.vue'
 
 const route = useRoute()
 const agentId = computed(() => route.params.id as string)
@@ -133,18 +137,13 @@ const runTaskNow = (task: any) => {
 <template>
   <div class="w-full space-y-8 relative">
     <!-- Toast Notification -->
-    <transition name="toast-slide">
-      <div 
-        v-if="showToast" 
-        class="fixed top-6 right-6 bg-[#0f172a] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 z-50 flex items-center space-x-3 backdrop-blur-md animate-fade-in"
-      >
-        <span class="w-2.5 h-2.5 rounded-full bg-[#bef264] animate-pulse"></span>
-        <div class="flex flex-col">
-          <span class="font-bold tracking-wide">Notifikasi Jadwal</span>
-          <span class="text-[10px] text-slate-400">{{ toastMessage }}</span>
-        </div>
-      </div>
-    </transition>
+    <!-- Toast Notification -->
+    <ToastNotification 
+      v-model:show="showToast"
+      title="Notifikasi Jadwal"
+      :message="toastMessage"
+      :duration="2500"
+    />
 
     <!-- Header & Action Bar -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
@@ -171,7 +170,7 @@ const runTaskNow = (task: any) => {
       <div class="lg:col-span-8 space-y-6">
         
         <!-- Input Form: Setup New Schedule -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div class="space-y-0.5">
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Buat Tugas Terjadwal Baru</h3>
@@ -244,23 +243,21 @@ const runTaskNow = (task: any) => {
 
             <!-- Form Submit action -->
             <div class="pt-3 flex justify-end">
-              <button 
+              <Button 
                 @click="addNewSchedule"
                 :disabled="!newInstruction.trim()"
-                :class="!newInstruction.trim() ? 'bg-slate-100 text-slate-450 border-transparent cursor-not-allowed' : 'bg-[#0f172a] hover:bg-slate-800 text-white shadow-sm cursor-pointer'"
-                class="px-5 py-3 rounded-xl text-xs font-bold transition-all active:scale-98 flex items-center space-x-1.5"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 <span>Tambahkan ke Jadwal Tugas</span>
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Section: List Scheduled Tasks Already Setup -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Jadwal Tugas yang Sudah Diaktifkan</h3>
@@ -273,10 +270,13 @@ const runTaskNow = (task: any) => {
 
           <!-- Active Schedules List -->
           <div class="space-y-4">
-            <div 
+            <Card 
               v-for="(sched, idx) in customSchedules" 
               :key="sched.id"
-              class="border border-slate-200/80 rounded-2xl p-5 hover:border-slate-350 bg-white transition-all shadow-2xs flex flex-col justify-between group"
+              hoverable
+              padding="p-5"
+              shadow="shadow-2xs"
+              class="flex flex-col justify-between group"
             >
               <div class="space-y-3.5">
                 <!-- Top Details Header -->
@@ -287,15 +287,10 @@ const runTaskNow = (task: any) => {
                   </span>
 
                   <!-- Active/Inactive Status -->
-                  <div class="flex items-center space-x-2 select-none">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" v-model="sched.enabled" class="sr-only peer" />
-                      <div class="w-8.5 h-4.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[#0f172a]"></div>
-                    </label>
-                    <span class="text-[9.5px] font-bold uppercase tracking-wider" :class="sched.enabled ? 'text-slate-700' : 'text-slate-400'">
-                      {{ sched.enabled ? 'Aktif' : 'Mati' }}
-                    </span>
-                  </div>
+                  <ToggleSwitch 
+                    v-model="sched.enabled" 
+                    :label="sched.enabled ? 'Aktif' : 'Mati'" 
+                  />
                 </div>
 
                 <!-- Instruction text -->
@@ -323,14 +318,14 @@ const runTaskNow = (task: any) => {
 
                 <!-- Action buttons -->
                 <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                  <button 
+                  <Button 
+                    variant="secondary"
+                    size="sm"
                     @click="runTaskNow(sched)"
                     :disabled="!sched.enabled"
-                    :class="!sched.enabled ? 'opacity-40 cursor-not-allowed' : 'bg-slate-55 hover:bg-[#bef264] text-slate-700 hover:text-[#0f172a]'"
-                    class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-[10px] font-extrabold transition-all cursor-pointer"
                   >
                     Uji Tugas
-                  </button>
+                  </Button>
                   <button 
                     @click="deleteSchedule(sched.id)"
                     class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2.5 rounded-xl border border-transparent hover:border-rose-100 transition-all cursor-pointer"
@@ -342,10 +337,10 @@ const runTaskNow = (task: any) => {
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
 
             <!-- Empty List State -->
-            <div v-if="customSchedules.length === 0" class="border border-dashed border-slate-200 rounded-2xl p-12 text-center space-y-3">
+            <Card padding="p-12" class="border-dashed text-center space-y-3">
               <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -353,9 +348,9 @@ const runTaskNow = (task: any) => {
               </div>
               <h3 class="text-xs font-black text-slate-700">Belum ada tugas terjadwal</h3>
               <p class="text-[10.5px] text-slate-400 max-w-xs mx-auto">Tulis sebuah perintah kerja baru pada form di atas dan tentukan waktu eksekusinya agar asisten bekerja secara otomatis.</p>
-            </div>
+            </Card>
           </div>
-        </div>
+        </Card>
 
       </div>
 
@@ -363,7 +358,7 @@ const runTaskNow = (task: any) => {
       <div class="lg:col-span-4 space-y-6">
         
         <!-- Execution Logs History -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-5">
+        <Card padding="p-6" class="space-y-5">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Riwayat Eksekusi (Logs)</h3>
@@ -372,12 +367,14 @@ const runTaskNow = (task: any) => {
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           </div>
 
-          <!-- Logs Feed list -->
           <div class="space-y-3.5 max-h-[480px] overflow-y-auto pr-1">
-            <div 
+            <Card 
               v-for="(log, idx) in logs" 
               :key="idx" 
-              class="border border-slate-200/60 p-3.5 rounded-xl hover:bg-slate-50/50 transition-colors space-y-2"
+              hoverable
+              padding="p-3.5"
+              shadow="shadow-none"
+              class="border-slate-200/60 hover:bg-slate-50/50 space-y-2"
             >
               <div class="flex items-start justify-between gap-3">
                 <span class="text-xs font-extrabold text-slate-800 leading-normal line-clamp-1">"{{ log.task }}"</span>
@@ -398,28 +395,12 @@ const runTaskNow = (task: any) => {
               <div class="bg-slate-50 p-2.5 rounded text-[10px] font-semibold text-slate-600 border-l-2 border-slate-350 leading-relaxed font-sans">
                 {{ log.result }}
               </div>
-            </div>
+            </Card>
           </div>
-        </div>
+        </Card>
 
       </div>
 
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Custom animations */
-.toast-slide-enter-active,
-.toast-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.toast-slide-enter-from {
-  transform: translateY(-20px) scale(0.95);
-  opacity: 0;
-}
-.toast-slide-leave-to {
-  transform: translateY(20px) scale(0.95);
-  opacity: 0;
-}
-</style>

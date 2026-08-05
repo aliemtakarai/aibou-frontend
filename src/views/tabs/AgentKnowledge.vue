@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SvgIcon from '../../components/ui/SvgIcon.vue'
+import Card from '../../components/ui/Card.vue'
+import Button from '../../components/ui/Button.vue'
 
 const isConnected = ref(true)
 const selectedFolder = ref('/Katalog & SOP Bisnis')
@@ -157,22 +159,23 @@ const runRetrievalTest = () => {
       
       <!-- Top actions -->
       <div class="flex items-center space-x-3">
-        <button 
+        <Button 
           @click="triggerSync"
           :disabled="!isConnected || isSyncing"
-          :class="(!isConnected || isSyncing) ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-transparent' : 'bg-[#0f172a] hover:bg-slate-800 text-white shadow-[0_4px_14px_rgba(15,23,42,0.15)] cursor-pointer'"
-          class="w-full md:w-auto font-bold text-xs px-6 py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center space-x-2"
+          :loading="isSyncing"
+          variant="primary"
+          class="w-full md:w-auto"
         >
-          <SvgIcon name="refresh" :className="isSyncing ? 'w-4 h-4 animate-spin' : 'w-4 h-4'" />
-          <span>{{ isSyncing ? 'Memperbarui...' : 'Sinkronkan Data Dokumen' }}</span>
-        </button>
+          <SvgIcon name="refresh" className="w-4 h-4" />
+          <span>Sinkronkan Data Dokumen</span>
+        </Button>
       </div>
     </div>
 
     <!-- Quick Insights Metrics Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <!-- Status Engine -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -185,10 +188,10 @@ const runRetrievalTest = () => {
             <span :class="isSyncing ? 'bg-[#a3e635] animate-pulse' : 'bg-emerald-500'" class="w-2.5 h-2.5 rounded-full inline-block"></span>
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- Total Files -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -198,10 +201,10 @@ const runRetrievalTest = () => {
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Dokumen Dipelajari</span>
           <span class="text-sm font-extrabold text-[#0f172a]">{{ isConnected ? mockDocs.length : 0 }} Berkas Dokumen</span>
         </div>
-      </div>
+      </Card>
 
       <!-- Total Chunks -->
-      <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center space-x-4">
+      <Card padding="p-5" class="flex items-center space-x-4">
         <div class="w-10 h-10 rounded-xl bg-[#bef264]/10 border border-[#bef264]/20 flex items-center justify-center text-[#3f6212] flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
@@ -211,7 +214,7 @@ const runRetrievalTest = () => {
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Materi Informasi</span>
           <span class="text-sm font-extrabold text-[#0f172a]">{{ isConnected ? totalChunks : 0 }} Poin Informasi</span>
         </div>
-      </div>
+      </Card>
     </div>
 
     <!-- Main Workspace Layout Grid -->
@@ -221,7 +224,7 @@ const runRetrievalTest = () => {
       <div class="lg:col-span-8 space-y-6">
         
         <!-- Workspace Integration Card -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+        <Card padding="p-6" class="space-y-6">
           <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
             <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Hubungkan Folder Penyimpanan</h3>
             <div class="flex items-center space-x-1.5">
@@ -258,14 +261,15 @@ const runRetrievalTest = () => {
                 <p class="text-[10.5px] text-slate-500" v-else>Sambungkan Google Drive Anda untuk mengambil dokumen katalog atau panduan penjualan secara otomatis.</p>
               </div>
             </div>
-            <button 
+            <Button 
               @click="toggleConnection" 
-              :class="isConnected ? 'bg-white hover:bg-rose-50 text-rose-600 border-slate-200 hover:border-rose-200 shadow-sm' : 'bg-[#0f172a] hover:bg-slate-800 text-white'"
-              class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center justify-center space-x-1"
+              :variant="isConnected ? 'secondary' : 'primary'"
+              :class="isConnected ? 'hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200' : ''"
+              class="w-full sm:w-auto"
             >
               <span v-if="isConnected">Putuskan Hubungan</span>
               <span v-else>Hubungkan Akun</span>
-            </button>
+            </Button>
           </div>
 
           <!-- Connected Folder breadcrumbs -->
@@ -287,10 +291,10 @@ const runRetrievalTest = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Document Explorer Board -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6" v-if="isConnected">
+        <Card padding="p-6" class="space-y-6" v-if="isConnected">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
             <div>
               <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Daftar Dokumen yang Dipelajari</h3>
@@ -362,9 +366,10 @@ const runRetrievalTest = () => {
           </div>
 
           <!-- Upload local files -->
-          <div 
+          <Card 
             @click="triggerFileInput"
-            class="border-2 border-dashed border-slate-200 hover:border-slate-400 bg-slate-50/30 hover:bg-slate-50/70 rounded-xl p-7 text-center cursor-pointer transition-all duration-300 group"
+            clickable
+            class="border-2 border-dashed border-slate-200 hover:border-slate-400 bg-slate-50/30 hover:bg-slate-50/70 p-7 text-center group"
           >
             <input 
               type="file" 
@@ -378,11 +383,11 @@ const runRetrievalTest = () => {
             </svg>
             <span class="text-xs font-bold text-slate-655 group-hover:text-[#0f172a] transition-colors block">Unggah Berkas Baru dari Komputer</span>
             <span class="text-[10px] text-slate-400 mt-1 block">Mendukung format PDF & TXT. Dokumen akan dipelajari secara otomatis oleh asisten AI.</span>
-          </div>
-        </div>
+          </Card>
+        </Card>
 
         <!-- Disconnected state info -->
-        <div v-else class="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-4 shadow-sm">
+        <Card padding="p-12" class="text-center space-y-4">
           <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -390,7 +395,7 @@ const runRetrievalTest = () => {
           </div>
           <h3 class="text-sm font-black text-slate-700">Hubungkan Sumber Dokumen</h3>
           <p class="text-xs text-slate-450 max-w-sm mx-auto">Silakan hubungkan akun Google Drive Anda di atas agar asisten virtual memiliki pengetahuan dasar untuk melayani pembeli.</p>
-        </div>
+        </Card>
 
       </div>
 
@@ -398,7 +403,7 @@ const runRetrievalTest = () => {
       <div class="lg:col-span-4 space-y-6">
         
         <!-- Live RAG Retrieval Tester -->
-        <div class="bg-[#0f172a] text-white border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden group">
+        <Card padding="p-6" class="bg-[#0f172a] text-white border-slate-800 group">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(190,242,100,0.08),transparent_60%)] pointer-events-none"></div>
           
           <div class="relative z-10 space-y-5">
@@ -460,7 +465,7 @@ const runRetrievalTest = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
       </div>
 
