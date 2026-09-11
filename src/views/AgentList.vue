@@ -1,17 +1,42 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { mockAgents } from '../utils/mockData'
+import { mockAgents, mockMarketplaceTools, mockAgentToolSettings } from '../utils/mockData'
 import { useRouter, useRoute } from 'vue-router'
 import StatCard from '../components/ui/StatCard.vue'
 import ToastNotification from '../components/ui/ToastNotification.vue'
 import Card from '../components/ui/Card.vue'
 import Button from '../components/ui/Button.vue'
+import SvgIcon from '../components/ui/SvgIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
 
 const selectAgent = (id: string) => {
   router.push(`/agent/${id}/chat`) // direct to chat console by default
+}
+
+const searchQuery = ref('')
+
+const filteredAgents = computed(() => {
+  if (!searchQuery.value.trim()) return mockAgents.value
+  const q = searchQuery.value.toLowerCase()
+  return mockAgents.value.filter(a => 
+    a.name.toLowerCase().includes(q) || 
+    a.role.toLowerCase().includes(q)
+  )
+})
+
+const getAgentToolCount = (agentId: string) => {
+  const settings = mockAgentToolSettings.value[agentId]
+  if (!settings) return 0
+  return Object.values(settings).filter(s => s.applied).length
+}
+
+const getAgentAppliedTools = (agentId: string) => {
+  const settings = mockAgentToolSettings.value[agentId]
+  if (!settings) return []
+  const appliedIds = Object.keys(settings).filter(id => settings[id]?.applied)
+  return mockMarketplaceTools.value.filter(t => appliedIds.includes(t.id))
 }
 
 // Modal State
@@ -147,7 +172,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f4f7f6] text-[#0f172a] p-6 md:p-10 font-sans relative overflow-hidden">
+  <div class="min-h-screen bg-[#f4f7f6] text-[#0f172a] font-sans relative overflow-x-hidden">
     <!-- Global Toast Notification -->
     <ToastNotification 
       v-model:show="showGlobalToast"
@@ -155,142 +180,245 @@ onMounted(() => {
       :message="globalToastMessage"
       :duration="5000"
     />
-    <!-- Soft light green gradient glow -->
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_-20%,rgba(190,242,100,0.12),rgba(255,255,255,0))] pointer-events-none"></div>
 
-    <div class="max-w-6xl mx-auto relative z-10 space-y-8">
-      <!-- Navbar Row -->
-      <div class="flex items-center justify-between border-b border-slate-200/60 pb-4">
-        <div class="flex items-center">
-          <img src="/logo.png" alt="Aibou Logo" class="h-12 object-contain" />
+    <!-- Ambient background glow (identical to Marketplace) -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,rgba(190,242,100,0.12),rgba(255,255,255,0))] pointer-events-none"></div>
+
+    <!-- Top Navigation Header (Exact same full-width sticky bar as Marketplace) -->
+    <header class="bg-white border-b border-slate-200/80 px-6 py-3.5 sticky top-0 z-30 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <!-- Logo & Navigation Links -->
+        <div class="flex items-center space-x-8">
+          <router-link to="/agents" class="flex items-center">
+            <img src="/logo.png" alt="Aibou Logo" class="h-10 object-contain" />
+          </router-link>
+
+          <nav class="hidden md:flex items-center space-x-1">
+            <router-link 
+              to="/agents" 
+              class="px-4 py-2 rounded-xl text-xs font-extrabold bg-[#bef264] text-[#0f172a] shadow-xs flex items-center space-x-2"
+            >
+              <SvgIcon name="bot" className="w-4 h-4 text-[#0f172a]" />
+              <span>Daftar Agen AI</span>
+            </router-link>
+
+            <router-link 
+              to="/tools" 
+              class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/70 transition-all flex items-center space-x-2"
+            >
+              <SvgIcon name="store" className="w-4 h-4 text-slate-400" />
+              <span>Marketplace Alat</span>
+              <span class="bg-[#0f172a] text-[#bef264] text-[9px] px-1.5 py-0.2 rounded-full font-black ml-1">{{ mockMarketplaceTools.length }}</span>
+            </router-link>
+          </nav>
         </div>
 
-        <!-- User Profile Dropdown Container -->
-        <div class="relative">
-          <button 
-            @click="showUserDropdown = !showUserDropdown"
-            class="flex items-center space-x-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-750 shadow-sm cursor-pointer select-none"
-          >
-            <div class="w-5 h-5 rounded-full bg-[#bef264] flex items-center justify-center text-[#0f172a] text-[10px] font-black">
-              AD
+        <!-- Right Side: User Menu -->
+        <div class="flex items-center space-x-4">
+          <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Workspace: <strong>Aibou Pro Team</strong></span>
+          </div>
+
+          <!-- User dropdown -->
+          <div class="relative">
+            <button 
+              @click="showUserDropdown = !showUserDropdown"
+              class="flex items-center space-x-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs cursor-pointer select-none"
+            >
+              <div class="w-6 h-6 rounded-full bg-[#bef264] flex items-center justify-center text-[#0f172a] text-[10px] font-black">
+                AD
+              </div>
+              <span class="hidden sm:inline">Admin Aibou</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div 
+              v-if="showUserDropdown" 
+              class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-40"
+            >
+              <router-link 
+                to="/tools" 
+                class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 font-bold flex items-center space-x-2"
+                @click="showUserDropdown = false"
+              >
+                <SvgIcon name="store" className="w-3.5 h-3.5 text-slate-400" />
+                <span>Marketplace Alat</span>
+              </router-link>
+              <button 
+                @click="openSettings"
+                class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 font-bold flex items-center space-x-2 cursor-pointer"
+              >
+                <SvgIcon name="cog" className="w-3.5 h-3.5 text-slate-400" />
+                <span>Pengaturan Akun</span>
+              </button>
+              <button 
+                @click="triggerLogout"
+                class="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-bold flex items-center space-x-2 border-t border-slate-100 cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </button>
             </div>
-            <span>Admin Aibou</span>
-            <svg class="w-3.5 h-3.5 text-slate-450 transition-transform duration-200" :class="showUserDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <!-- Dropdown Overlay to close click-outside -->
-          <div v-if="showUserDropdown" @click="showUserDropdown = false" class="fixed inset-0 z-30"></div>
-
-          <!-- Dropdown Menu -->
-          <div 
-            v-if="showUserDropdown" 
-            class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-40 animate-fade-in"
-          >
-            <button 
-              @click="openSettings"
-              class="w-full text-left px-4 py-2.5 text-xs text-slate-750 hover:bg-[#f4f7f6] hover:text-[#0f172a] font-bold flex items-center space-x-2 transition-colors cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-slate-455" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>Pengaturan</span>
-            </button>
-            <button 
-              @click="triggerLogout"
-              class="w-full text-left px-4 py-2.5 text-xs text-red-655 hover:bg-red-50/50 font-bold flex items-center space-x-2 transition-colors border-t border-slate-100 cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-red-455" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span>Logout</span>
-            </button>
           </div>
         </div>
       </div>
+    </header>
 
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- Main Workspace Container (max-w-7xl identical to Marketplace) -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 relative z-10">
+      
+      <!-- Top Title & Action Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
         <div>
-          <div class="flex items-center space-x-2 text-[#4d7c0f] text-xs font-bold uppercase tracking-wider">
+          <div class="flex items-center space-x-2 text-[#4d7c0f] text-xs font-bold uppercase tracking-wider mb-1">
             <span class="w-2 h-2 rounded-full bg-[#bef264]"></span>
             <span>Konsol Aibou v1.2</span>
           </div>
-          <h1 class="text-3xl font-black text-[#0f172a] tracking-tight mt-1">
-            Selamat Datang, Admin 
-          </h1>
-          <p class="text-slate-505 mt-2 text-sm max-w-xl">
-            Ikhtisar wawasan agen percakapan, kinerja penjualan, dan basis pengetahuan RAG.
+          <h1 class="text-3xl font-black text-[#0f172a] tracking-tight">Daftar Agen Percakapan AI</h1>
+          <p class="text-slate-500 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+            Kelola agen AI, pantau interaksi kotak masuk, dan terapkan integrasi alat serta basis pengetahuan RAG secara terpusat.
           </p>
         </div>
 
-        <Button 
-          @click="showCreateModal = true"
-          variant="primary"
-          class="self-start md:self-auto"
-        >
-          <span class="text-sm font-bold leading-none">+</span>
-          <span>Pasang Agen Baru</span>
-        </Button>
+        <div class="flex items-center space-x-3">
+          <Button 
+            @click="showCreateModal = true"
+            variant="primary"
+            size="md"
+          >
+            <span class="text-sm font-bold leading-none mr-1">+</span>
+            <span>Pasang Agen Baru</span>
+          </Button>
+        </div>
       </div>
 
-      <!-- Quick Stats Panel -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-        <StatCard label="Total Agen" :value="mockAgents.length" />
-        <StatCard label="Obrolan Kotak Masuk Aktif" value="3" highlight border-color="border-l border-slate-100 pl-4">
-          <template #suffix>
-            <span class="w-2 h-2 rounded-full bg-[#bef264]"></span>
-          </template>
-        </StatCard>
-        <StatCard label="Dokumen Disinkronkan" value="24 Berkas" border-color="border-l border-slate-100 pl-4" />
-        <StatCard label="Status Engine" value="Operasional" highlight border-color="border-l border-slate-100 pl-4" />
+      <!-- Quick Stats Metrics Strip -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card padding="p-4 sm:p-5" class="space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Agen Terdaftar</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-black text-[#0f172a]">{{ mockAgents.length }}</span>
+            <span class="text-xs text-slate-500 font-semibold">Agen Aktif</span>
+          </div>
+        </Card>
+
+        <Card padding="p-4 sm:p-5" class="space-y-1 border-l-4 border-l-emerald-500">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Obrolan Kotak Masuk</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-black text-emerald-600">3</span>
+            <span class="text-xs text-slate-500 font-semibold">Chat Live</span>
+          </div>
+        </Card>
+
+        <Card padding="p-4 sm:p-5" class="space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Katalog Marketplace</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-2xl font-black text-[#0f172a]">{{ mockMarketplaceTools.length }}</span>
+            <span class="text-xs text-slate-500 font-semibold">Alat Tersedia</span>
+          </div>
+        </Card>
+
+        <Card padding="p-4 sm:p-5" class="space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status MCP Gateway</span>
+          <div class="flex items-center space-x-2 mt-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="text-xs font-black text-[#0f172a]">Operasional</span>
+          </div>
+          <span class="text-[10px] text-slate-400 block mt-0.5">Semua node online</span>
+        </Card>
+      </div>
+
+      <!-- Search & Filter Bar for Agents -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Semua Agen</span>
+          <span class="text-[11px] bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full">{{ filteredAgents.length }}</span>
+        </div>
+
+        <div class="relative w-full sm:w-72">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <SvgIcon name="search" className="w-3.5 h-3.5" />
+          </span>
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Cari agen berdasarkan nama / peran..." 
+            class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-[#0f172a] focus:outline-none focus:border-slate-400 font-semibold shadow-2xs"
+          />
+        </div>
       </div>
 
       <!-- Agents Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card 
-          v-for="agent in mockAgents" 
+          v-for="agent in filteredAgents" 
           :key="agent.id"
           @click="selectAgent(agent.id)"
           hoverable
           clickable
-          class="group min-h-[190px]"
+          padding="p-6"
+          class="group min-h-[220px] flex flex-col justify-between border-slate-200/90 transition-all duration-200"
         >
           <!-- Soft light green hover accent glow -->
           <div class="absolute -right-16 -top-16 w-32 h-32 bg-[#bef264]/5 rounded-full blur-2xl group-hover:bg-[#bef264]/10 transition-all duration-300"></div>
 
-          <div>
-            <div class="flex items-start space-x-4">
-              <img 
-                :src="agent.avatar" 
-                :alt="agent.name" 
-                class="w-14 h-14 rounded-full object-cover border border-slate-200 group-hover:border-slate-300 transition-all duration-300 shadow-sm"
-              />
-              <div class="space-y-1">
-                <h2 class="text-base font-bold text-[#0f172a] group-hover:text-slate-800 transition-colors duration-200">{{ agent.name }}</h2>
-                <p class="text-slate-400 text-xs font-medium leading-relaxed">{{ agent.role }}</p>
+          <div class="space-y-4">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center space-x-3.5">
+                <div class="relative">
+                  <img 
+                    :src="agent.avatar" 
+                    :alt="agent.name" 
+                    class="w-13 h-13 rounded-2xl object-cover border border-slate-200 group-hover:border-slate-300 transition-all shadow-sm"
+                  />
+                  <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                </div>
+                <div>
+                  <h2 class="text-base font-extrabold text-[#0f172a] group-hover:text-[#3f6212] transition-colors leading-tight">
+                    {{ agent.name }}
+                  </h2>
+                  <p class="text-slate-400 text-xs font-semibold mt-0.5 leading-snug line-clamp-1">{{ agent.role }}</p>
+                </div>
               </div>
+
+              <span class="bg-[#bef264]/20 text-[#3f6212] border border-[#bef264]/40 text-[9.5px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Aktif
+              </span>
             </div>
 
-            <!-- Custom Agent Stats Snippet -->
-            <div class="mt-5 grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-medium">
-              <div class="bg-[#f4f7f6] px-2 py-1.5 rounded-lg border border-slate-100">
-                Kotak Masuk: <span class="text-slate-700 font-bold">2 aktif</span>
+            <!-- Applied Tools Pills -->
+            <div class="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2 text-[10.5px]">
+              <div class="flex items-center justify-between text-slate-500 font-medium">
+                <span>Alat Marketplace:</span>
+                <span class="font-bold text-[#0f172a]">{{ getAgentToolCount(agent.id) }} alat terpasang</span>
               </div>
-              <div class="bg-[#f4f7f6] px-2 py-1.5 rounded-lg border border-slate-100">
-                Keahlian: <span class="text-slate-700 font-bold">Sheets</span>
+              
+              <div v-if="getAgentAppliedTools(agent.id).length > 0" class="flex flex-wrap gap-1.5 pt-0.5">
+                <span 
+                  v-for="t in getAgentAppliedTools(agent.id)"
+                  :key="t.id"
+                  class="bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-semibold text-[10px] flex items-center space-x-1 shadow-2xs"
+                >
+                  <SvgIcon :name="t.icon" className="w-2.5 h-2.5 text-[#3f6212]" />
+                  <span>{{ t.name }}</span>
+                </span>
               </div>
+              <span v-else class="text-slate-400 italic block text-[10px]">Belum ada alat yang diterapkan</span>
             </div>
           </div>
 
-          <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
+          <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
             <div class="flex items-center space-x-1.5">
-              <span class="w-2 h-2 rounded-full bg-[#bef264]"></span>
-              <span class="text-slate-550 font-medium">Responder Aktif</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="text-slate-500 font-medium">Kotak Masuk: <strong class="text-slate-800">2 aktif</strong></span>
             </div>
-            <span class="text-slate-700 font-bold flex items-center space-x-0.5 group-hover:translate-x-1 transition-transform">
+            <span class="text-slate-700 font-bold flex items-center space-x-1 group-hover:text-[#3f6212] group-hover:translate-x-1 transition-all">
               <span>Buka Dasbor</span>
               <span>&rarr;</span>
             </span>
@@ -301,16 +429,17 @@ onMounted(() => {
         <Card 
           @click="showCreateModal = true"
           clickable
-          class="border-2 border-dashed border-slate-200 hover:border-slate-300 min-h-[190px] flex flex-col items-center justify-center text-center group"
+          padding="p-6"
+          class="border-2 border-dashed border-slate-200 hover:border-slate-300 min-h-[220px] flex flex-col items-center justify-center text-center group transition-all"
         >
-          <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-150 flex items-center justify-center text-slate-455 group-hover:text-slate-700 transition-colors shadow-sm mb-3 text-lg font-bold">
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-slate-800 group-hover:scale-105 transition-all shadow-sm mb-3 text-xl font-bold">
             +
           </div>
-          <h3 class="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Pasang Agen AI Baru</h3>
-          <p class="text-slate-400 text-xs mt-1 max-w-[200px]">Buat persona kustom baru dan atur ruang kerja Google Drive.</p>
+          <h3 class="text-sm font-extrabold text-slate-800 group-hover:text-slate-900 transition-colors">Pasang Agen AI Baru</h3>
+          <p class="text-slate-400 text-xs mt-1 max-w-[220px] leading-relaxed">Buat persona kustom baru, pilih gaya bicara, dan terapkan alat.</p>
         </Card>
       </div>
-    </div>
+    </main>
 
     <!-- Create Agent Modal -->
     <div 

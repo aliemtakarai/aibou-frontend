@@ -268,3 +268,476 @@ export const mockPlaygroundResponses = [
     variables: {}
   }
 ] as SandboxDebug[]
+
+// 5. Global Marketplace Tools Interfaces & State
+export interface MarketplaceTool {
+  id: string
+  name: string
+  publisher: string
+  category: string
+  icon: string
+  badge?: string
+  desc: string
+  version: string
+  installs: string
+  rating: number
+  reviews: number
+  requiresConnection: boolean
+  connectionStatus: 'connected' | 'disconnected' | 'configuring' | 'error' | 'not_required'
+  connectionDetails: {
+    account?: string
+    service?: string
+    endpoint?: string
+    secretMasked?: string
+    phoneId?: string
+    wabaId?: string
+    merchantId?: string
+    environment?: string
+    hostUrl?: string
+    apiKeyMasked?: string
+    statusMessage?: string
+    lastSynced?: string
+    latency?: string
+    scope?: string
+    [key: string]: any
+  }
+  assignedAgentIds: string[]
+}
+
+export interface AgentToolSetting {
+  toolId: string
+  applied: boolean
+  settings: Record<string, any>
+}
+
+export const mockMarketplaceTools = ref<MarketplaceTool[]>([
+  {
+    id: 'sheets',
+    name: 'Google Sheets Sync',
+    publisher: 'Google Cloud Platform',
+    category: 'Spreadsheet',
+    icon: 'sheets',
+    badge: 'Official',
+    desc: 'Sinkronisasi dua arah dan logging prospek otomatis ke Google Spreadsheet secara real-time.',
+    version: 'v2.6.0',
+    installs: '14.2k',
+    rating: 4.9,
+    reviews: 230,
+    requiresConnection: true,
+    connectionStatus: 'connected',
+    connectionDetails: {
+      account: 'admin@aibou-enterprise.id',
+      service: 'Google Workspace OAuth 2.0',
+      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      statusMessage: 'Terautentikasi & Siap Digunakan',
+      lastSynced: '1 menit yang lalu',
+      latency: '34ms'
+    },
+    assignedAgentIds: ['budi-sales', 'siti-support']
+  },
+  {
+    id: 'whatsapp_alerts',
+    name: 'WhatsApp Business API Gateway',
+    publisher: 'Meta Platform Cloud API',
+    category: 'Notifikasi',
+    icon: 'chat',
+    badge: 'Verified',
+    desc: 'Kirim notifikasi otomatis, peringatan darurat, atau eskalasi ke nomor WhatsApp tim CS manusia.',
+    version: 'v19.0',
+    installs: '18.9k',
+    rating: 4.9,
+    reviews: 412,
+    requiresConnection: true,
+    connectionStatus: 'connected',
+    connectionDetails: {
+      phoneId: 'WA-PHONE-6281234567890',
+      wabaId: 'WABA-9988127391',
+      service: 'Meta Cloud API v19.0',
+      statusMessage: 'Koneksi Terverifikasi (Kualitas Nomor: High)',
+      lastSynced: 'Live Stream',
+      latency: '22ms'
+    },
+    assignedAgentIds: ['budi-sales']
+  },
+  {
+    id: 'webhook',
+    name: 'HTTP Webhook Gateway',
+    publisher: 'Aibou Platform Core',
+    category: 'Developer & Otomasi',
+    icon: 'link',
+    badge: 'Popular',
+    desc: 'Dispatcer payload JSON real-time ke Make, Zapier, n8n, atau REST API endpoint backend kustom Anda.',
+    version: 'v3.1.2',
+    installs: '8.4k',
+    rating: 4.7,
+    reviews: 95,
+    requiresConnection: true,
+    connectionStatus: 'connected',
+    connectionDetails: {
+      endpoint: 'https://api.n8n.cloud/webhook/aibou-lead',
+      secretMasked: 'whsec_••••••••8821',
+      service: 'REST Webhook Gateway',
+      statusMessage: 'Endpoint Aktif (Respon HTTP 200 OK)',
+      lastSynced: '10 menit yang lalu',
+      latency: '48ms'
+    },
+    assignedAgentIds: []
+  },
+  {
+    id: 'midtrans',
+    name: 'Midtrans Payment Engine',
+    publisher: 'Fintech Connect Indonesia',
+    category: 'Finance & Keuangan',
+    icon: 'plug',
+    badge: 'Fintech',
+    desc: 'Generate tautan invoice tagihan pembayaran otomatis dan kirimkan ke pembeli di dalam chat WhatsApp.',
+    version: 'v1.4.0',
+    installs: '6.1k',
+    rating: 4.8,
+    reviews: 118,
+    requiresConnection: true,
+    connectionStatus: 'disconnected',
+    connectionDetails: {
+      environment: 'Sandbox',
+      merchantId: 'M109281',
+      serverKey: '',
+      statusMessage: 'Belum terhubung. Masukkan Server Key Midtrans.',
+      lastSynced: '-',
+      latency: '-'
+    },
+    assignedAgentIds: []
+  },
+  {
+    id: 'n8n_node',
+    name: 'n8n Workflow Activator',
+    publisher: 'n8n Community',
+    category: 'Developer & Otomasi',
+    icon: 'refresh',
+    badge: 'Workflow',
+    desc: 'Memicu automasi multi-langkah n8n secara instan saat prospek menyelesaikan checkout atau chat.',
+    version: 'v2.1.0',
+    installs: '4.7k',
+    rating: 4.6,
+    reviews: 64,
+    requiresConnection: true,
+    connectionStatus: 'connected',
+    connectionDetails: {
+      hostUrl: 'https://n8n.my-business.internal',
+      apiKeyMasked: 'n8n_api_••••••••44a2',
+      service: 'n8n REST Webhook Node',
+      statusMessage: 'Instance Online (Cluster 1)',
+      lastSynced: '15 menit yang lalu',
+      latency: '62ms'
+    },
+    assignedAgentIds: []
+  },
+  {
+    id: 'slack',
+    name: 'Slack Team Notification',
+    publisher: 'Slack Technologies',
+    category: 'Notifikasi',
+    icon: 'chat',
+    desc: 'Kirim ringkasan lead dan peringatan handover langsung ke channel Slack internal perusahaan.',
+    version: 'v1.2.4',
+    installs: '5.3k',
+    rating: 4.5,
+    reviews: 42,
+    requiresConnection: true,
+    connectionStatus: 'disconnected',
+    connectionDetails: {
+      service: 'Slack Incoming Webhooks',
+      endpoint: '',
+      statusMessage: 'Belum Dikonfigurasi',
+      lastSynced: '-',
+      latency: '-'
+    },
+    assignedAgentIds: []
+  },
+  {
+    id: 'lead_qualifier',
+    name: 'Kualifikasi Prospek Otomatis',
+    publisher: 'Sales Intelligence Core AI',
+    category: 'Sales & Marketing',
+    icon: 'bot',
+    badge: 'Core AI',
+    desc: 'Keahlian bawaan AI untuk mendeteksi intent pembeli, budget, dan scoring kualitas prospek secara mandiri.',
+    version: 'v4.0.0',
+    installs: '22k',
+    rating: 5.0,
+    reviews: 580,
+    requiresConnection: false,
+    connectionStatus: 'not_required',
+    connectionDetails: {
+      service: 'Internal LLM Engine',
+      statusMessage: 'Aktif bawaan platform (Tidak butuh API eksternal)',
+      latency: '15ms'
+    },
+    assignedAgentIds: ['budi-sales']
+  },
+  {
+    id: 'faq_answerer',
+    name: 'FAQ Knowledge Reader',
+    publisher: 'RAG Engine Core AI',
+    category: 'Customer Support',
+    icon: 'book',
+    badge: 'Core AI',
+    desc: 'Pencocokan dokumen bisnis dan SOP otomatis dari Google Drive untuk menjawab pertanyaan pembeli.',
+    version: 'v3.5.0',
+    installs: '26k',
+    rating: 5.0,
+    reviews: 620,
+    requiresConnection: false,
+    connectionStatus: 'not_required',
+    connectionDetails: {
+      service: 'Internal Vector DB & RAG',
+      statusMessage: 'Aktif bawaan platform (Terhubung otomatis ke folder RAG)',
+      latency: '25ms'
+    },
+    assignedAgentIds: ['budi-sales', 'siti-support']
+  }
+])
+
+// 6. Agent Tool Configurations (Per Agent: Applied status & Agent-specific parameters)
+export const mockAgentToolSettings = ref<Record<string, Record<string, AgentToolSetting>>>({
+  'budi-sales': {
+    'sheets': {
+      toolId: 'sheets',
+      applied: true,
+      settings: {
+        spreadsheetName: 'Data Leads & Penjualan 2026',
+        sheetTab: 'Sheet1 (Prospek Baru)',
+        columnName: 'Kolom A (Nama Calon Pelanggan)',
+        columnPhone: 'Kolom B (Nomor WhatsApp)',
+        columnInterest: 'Kolom C (Tingkat Keminatan)',
+        autoAppend: true,
+        triggerCondition: 'Saat prospek baru selesai dikualifikasi'
+      }
+    },
+    'whatsapp_alerts': {
+      toolId: 'whatsapp_alerts',
+      applied: true,
+      settings: {
+        recipientPhone: '6281234567890',
+        alertOnHighInterest: true,
+        alertOnHumanRequest: true,
+        customMessageTemplate: 'Halo Admin! Prospek baru dari Agen Budi: {{lead_name}} ({{lead_whatsapp}}). Minat: {{interest_level}}. Segera follow-up!'
+      }
+    },
+    'lead_qualifier': {
+      toolId: 'lead_qualifier',
+      applied: true,
+      settings: {
+        qualificationThreshold: 'Tinggi (Siap Beli)',
+        autoExtractBudget: true,
+        strictRules: true
+      }
+    },
+    'faq_answerer': {
+      toolId: 'faq_answerer',
+      applied: true,
+      settings: {
+        confidenceThreshold: 0.85,
+        maxCitations: 3,
+        strictDriveOnly: true
+      }
+    },
+    'webhook': {
+      toolId: 'webhook',
+      applied: false,
+      settings: {
+        eventTrigger: 'lead_conversion',
+        agentTag: 'budi_sales_pro',
+        includeHistory: false
+      }
+    },
+    'midtrans': {
+      toolId: 'midtrans',
+      applied: false,
+      settings: {
+        expiryHours: 24,
+        memoPrefix: 'Order Produk via Budi Sales',
+        sendInvoiceInChat: true
+      }
+    },
+    'n8n_node': {
+      toolId: 'n8n_node',
+      applied: false,
+      settings: {
+        workflowName: 'Lead Nurture Flow',
+        customTag: 'priority_high'
+      }
+    },
+    'slack': {
+      toolId: 'slack',
+      applied: false,
+      settings: {
+        channelTarget: '#leads-sales-budi',
+        notifyOnHandoffOnly: true
+      }
+    }
+  },
+  'siti-support': {
+    'sheets': {
+      toolId: 'sheets',
+      applied: true,
+      settings: {
+        spreadsheetName: 'Customer Support Tickets 2026',
+        sheetTab: 'Tiket Masuk',
+        columnName: 'Kolom A (Nama User)',
+        columnPhone: 'Kolom B (Kontak)',
+        columnInterest: 'Kolom C (Keluhan/Kendala)',
+        autoAppend: true,
+        triggerCondition: 'Saat keluhan tercatat'
+      }
+    },
+    'whatsapp_alerts': {
+      toolId: 'whatsapp_alerts',
+      applied: false,
+      settings: {
+        recipientPhone: '6289876543210',
+        alertOnHighInterest: false,
+        alertOnHumanRequest: true,
+        customMessageTemplate: 'Peringatan CS: User {{lead_name}} butuh bantuan manusia di chat!'
+      }
+    },
+    'faq_answerer': {
+      toolId: 'faq_answerer',
+      applied: true,
+      settings: {
+        confidenceThreshold: 0.80,
+        maxCitations: 5,
+        strictDriveOnly: false
+      }
+    },
+    'lead_qualifier': {
+      toolId: 'lead_qualifier',
+      applied: false,
+      settings: {
+        qualificationThreshold: 'Semua Kategori',
+        autoExtractBudget: false,
+        strictRules: false
+      }
+    },
+    'webhook': {
+      toolId: 'webhook',
+      applied: false,
+      settings: {
+        eventTrigger: 'chat_closed',
+        agentTag: 'siti_support_cs',
+        includeHistory: true
+      }
+    },
+    'midtrans': {
+      toolId: 'midtrans',
+      applied: false,
+      settings: {
+        expiryHours: 12,
+        memoPrefix: 'Tiket CS Siti',
+        sendInvoiceInChat: false
+      }
+    },
+    'n8n_node': {
+      toolId: 'n8n_node',
+      applied: false,
+      settings: {
+        workflowName: 'CS Escalation Flow',
+        customTag: 'cs_ticket'
+      }
+    },
+    'slack': {
+      toolId: 'slack',
+      applied: false,
+      settings: {
+        channelTarget: '#cs-escalations',
+        notifyOnHandoffOnly: true
+      }
+    }
+  },
+  'andi-tech': {
+    'webhook': {
+      toolId: 'webhook',
+      applied: false,
+      settings: {
+        eventTrigger: 'server_alert',
+        agentTag: 'andi_tech',
+        includeHistory: false
+      }
+    }
+  }
+})
+
+// Helper functions for tool connection management at the workspace level
+export const connectMarketplaceTool = (toolId: string, details: Partial<MarketplaceTool['connectionDetails']>) => {
+  const tool = mockMarketplaceTools.value.find(t => t.id === toolId)
+  if (tool) {
+    tool.connectionStatus = 'connected'
+    tool.connectionDetails = {
+      ...tool.connectionDetails,
+      ...details,
+      statusMessage: details.statusMessage || 'Terhubung & Siap Digunakan',
+      lastSynced: 'Baru saja',
+      latency: details.latency || '45ms'
+    }
+  }
+}
+
+export const disconnectMarketplaceTool = (toolId: string) => {
+  const tool = mockMarketplaceTools.value.find(t => t.id === toolId)
+  if (tool && tool.requiresConnection) {
+    tool.connectionStatus = 'disconnected'
+    tool.connectionDetails = {
+      ...tool.connectionDetails,
+      statusMessage: 'Koneksi terputus',
+      lastSynced: '-',
+      latency: '-'
+    }
+    // Note: When disconnected globally, agents that had this tool applied will see warning
+  }
+}
+
+export const toggleAgentTool = (agentId: string, toolId: string) => {
+  if (!mockAgentToolSettings.value[agentId]) {
+    mockAgentToolSettings.value[agentId] = {}
+  }
+  
+  const current = mockAgentToolSettings.value[agentId][toolId]
+  if (current) {
+    current.applied = !current.applied
+  } else {
+    mockAgentToolSettings.value[agentId][toolId] = {
+      toolId,
+      applied: true,
+      settings: {}
+    }
+  }
+
+  // Also sync assignedAgentIds on marketplace tool
+  const tool = mockMarketplaceTools.value.find(t => t.id === toolId)
+  if (tool) {
+    const isNowApplied = mockAgentToolSettings.value[agentId][toolId]?.applied
+    if (isNowApplied) {
+      if (!tool.assignedAgentIds.includes(agentId)) {
+        tool.assignedAgentIds.push(agentId)
+      }
+    } else {
+      tool.assignedAgentIds = tool.assignedAgentIds.filter(id => id !== agentId)
+    }
+  }
+}
+
+export const updateAgentToolSettings = (agentId: string, toolId: string, newSettings: Record<string, any>) => {
+  if (!mockAgentToolSettings.value[agentId]) {
+    mockAgentToolSettings.value[agentId] = {}
+  }
+  if (!mockAgentToolSettings.value[agentId][toolId]) {
+    mockAgentToolSettings.value[agentId][toolId] = {
+      toolId,
+      applied: true,
+      settings: {}
+    }
+  }
+  mockAgentToolSettings.value[agentId][toolId].settings = {
+    ...mockAgentToolSettings.value[agentId][toolId].settings,
+    ...newSettings
+  }
+}

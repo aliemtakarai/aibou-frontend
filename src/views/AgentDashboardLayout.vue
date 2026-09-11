@@ -58,9 +58,19 @@ const tabs = [
         </div>
       </div>
       
-      <div class="text-slate-450 text-xs hidden sm:flex items-center space-x-2 font-medium">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
-        <span class="font-mono text-[10px] text-slate-500">Ruang Kerja: /aibou/{{ agentId }}</span>
+      <div class="flex items-center space-x-3">
+        <router-link 
+          to="/tools" 
+          class="hidden sm:flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#0f172a] bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all"
+        >
+          <SvgIcon name="store" className="w-3.5 h-3.5 text-slate-500" />
+          <span>Marketplace Alat</span>
+        </router-link>
+
+        <div class="text-slate-450 text-xs hidden md:flex items-center space-x-2 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
+          <span class="font-mono text-[10px] text-slate-500">Ruang Kerja: /aibou/{{ agentId }}</span>
+        </div>
       </div>
     </header>
 
@@ -83,26 +93,39 @@ const tabs = [
           </router-link>
         </div>
 
+        <!-- Global Marketplace Shortcut Card at Bottom of Sidebar -->
+        <div class="border-t border-slate-150 pt-3">
+          <router-link
+            to="/tools"
+            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-[#0f172a] hover:bg-slate-50 transition-all border border-slate-200/90 group"
+          >
+            <SvgIcon name="store" className="w-4 h-4 text-slate-400 group-hover:text-[#3f6212] transition-colors" />
+            <span>Marketplace Alat</span>
+            <span class="bg-[#bef264]/30 text-[#3f6212] text-[9px] px-1.5 py-0.2 rounded font-black ml-auto">Global</span>
+          </router-link>
+        </div>
       </aside>
 
       <!-- Active Tab View Outlet -->
-      <main class="flex-1 overflow-auto bg-[#f4f7f6] p-6 pb-24 md:pb-6 flex flex-col">
+      <main class="flex-1 overflow-auto bg-[#f4f7f6] p-4 sm:p-6 pb-28 md:pb-6 flex flex-col">
         <router-view />
       </main>
 
-      <!-- Bottom Tab Bar Navigation for Mobile & Tablet (Hidden on Desktop) -->
-      <nav class="flex md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 px-2 py-2 justify-around items-center z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] h-16">
-        <router-link
-          v-for="tab in tabs"
-          :key="tab.path"
-          :to="`/agent/${agentId}/${tab.path}`"
-          class="flex flex-col items-center justify-center flex-1 py-1 text-slate-500 hover:text-slate-800 transition-all select-none"
-          active-class="mobile-active-tab-style"
-        >
-          <SvgIcon :name="tab.icon" className="w-5 h-5 flex-shrink-0 text-slate-400" />
-          <span class="text-[9px] font-bold mt-1 tracking-tight">{{ tab.shortName }}</span>
-        </router-link>
-      </nav>
+      <!-- Floating Bottom Tab Bar Navigation for Mobile & Tablet (Hidden on Desktop) -->
+      <div class="flex md:hidden fixed bottom-4 inset-x-4 max-w-md mx-auto z-50 pointer-events-none">
+        <nav class="w-full bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-1.5 flex items-center justify-around shadow-[0_8px_30px_rgba(0,0,0,0.12)] pointer-events-auto">
+          <router-link
+            v-for="tab in tabs"
+            :key="tab.path"
+            :to="`/agent/${agentId}/${tab.path}`"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-slate-500 hover:text-slate-900 transition-all select-none group"
+            active-class="mobile-active-tab-style"
+          >
+            <SvgIcon :name="tab.icon" className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            <span class="text-[9px] sm:text-[10px] font-bold mt-1 tracking-tight truncate">{{ tab.shortName }}</span>
+          </router-link>
+        </nav>
+      </div>
     </div>
   </div>
 </template>
@@ -119,11 +142,15 @@ const tabs = [
   color: #0f172a !important;
 }
 .mobile-active-tab-style {
+  background-color: #bef264 !important;
   color: #0f172a !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px rgba(190, 242, 100, 0.3) !important;
 }
 .mobile-active-tab-style svg {
   color: #0f172a !important;
-  transform: scale(1.1);
+  transform: scale(1.05);
   transition: transform 0.2s ease;
 }
 </style>

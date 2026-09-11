@@ -3,6 +3,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Onboarding from '../views/Onboarding.vue'
 import AgentList from '../views/AgentList.vue'
+import ToolsMarketplace from '../views/ToolsMarketplace.vue'
 import AgentDashboardLayout from '../views/AgentDashboardLayout.vue'
 import AgentPersona from '../views/tabs/AgentPersona.vue'
 import AgentKnowledge from '../views/tabs/AgentKnowledge.vue'
@@ -34,6 +35,19 @@ const routes = [
     path: '/agents',
     name: 'AgentList',
     component: AgentList
+  },
+  {
+    path: '/tools',
+    name: 'ToolsMarketplace',
+    component: ToolsMarketplace
+  },
+  {
+    path: '/marketplace',
+    redirect: '/tools'
+  },
+  {
+    path: '/integrations',
+    redirect: '/tools'
   },
   {
     path: '/agent/:id',
