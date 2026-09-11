@@ -202,19 +202,19 @@ const goToMarketplace = () => {
     />
 
     <!-- Header Section with Distinct Distinction -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200 pb-5">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 rounded-2xl bg-[#bef264]/20 border border-[#bef264]/40 flex items-center justify-center text-[#3f6212] shadow-2xs">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-900 shadow-2xs">
           <SvgIcon name="plug" className="w-6 h-6" />
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h1 class="text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight">Keahlian & Alat Agen</h1>
-            <span class="bg-[#bef264]/30 text-[#3f6212] text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+            <h1 class="text-xl sm:text-2xl font-black text-[#1c1917] tracking-tight">Keahlian & Alat Agen</h1>
+            <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
               {{ agent?.name || 'Agen' }}
             </span>
           </div>
-          <p class="text-slate-500 text-xs mt-1">
+          <p class="text-stone-500 text-xs mt-1">
             Terapkan integrasi dari katalog workspace dan atur parameter perilakunya untuk agen ini.
           </p>
         </div>
@@ -226,24 +226,24 @@ const goToMarketplace = () => {
           @click="goToMarketplace"
           variant="secondary"
           size="sm"
-          class="border-slate-200 hover:border-slate-300"
+          class="border-stone-200 hover:border-stone-300"
         >
-          <SvgIcon name="store" className="w-3.5 h-3.5 mr-1.5 text-slate-600" />
+          <SvgIcon name="store" className="w-3.5 h-3.5 mr-1.5 text-stone-600" />
           <span>Buka Marketplace Alat</span>
-          <SvgIcon name="external-link" className="w-3 h-3 ml-1 text-slate-400" />
+          <SvgIcon name="external-link" className="w-3 h-3 ml-1 text-stone-400" />
         </Button>
       </div>
     </div>
 
     <!-- Clear Architectural Guidance Callout -->
-    <div class="bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/40 border border-emerald-200/70 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+    <div class="bg-gradient-to-r from-amber-50/80 via-white to-amber-50/40 border border-amber-200/80 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
       <div class="flex items-center space-x-3">
-        <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0">
           <SvgIcon name="shield" className="w-4 h-4" />
         </div>
         <div class="text-xs">
-          <span class="font-extrabold text-[#0f172a]">Koneksi & Otentikasi Dikelola Terpusat</span>
-          <p class="text-slate-500 text-[11px] mt-0.5">
+          <span class="font-extrabold text-[#1c1917]">Koneksi & Otentikasi Dikelola Terpusat</span>
+          <p class="text-stone-500 text-[11px] mt-0.5">
             Akun Google OAuth, kunci API Midtrans, dan Webhook telah disetup di Marketplace Workspace. Di sini Anda cukup <strong>mengaktifkan alat</strong> dan mengatur parameter agen.
           </p>
         </div>
@@ -251,7 +251,7 @@ const goToMarketplace = () => {
 
       <button 
         @click="goToMarketplace"
-        class="text-xs text-[#3f6212] hover:text-[#1e293b] font-bold flex items-center space-x-1 flex-shrink-0 cursor-pointer"
+        class="text-xs text-amber-700 hover:text-amber-900 font-bold flex items-center space-x-1 flex-shrink-0 cursor-pointer"
       >
         <span>Kelola Koneksi Global &rarr;</span>
       </button>
@@ -260,10 +260,10 @@ const goToMarketplace = () => {
     <!-- Filter Tabs & Search Bar -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       <!-- Status Tabs -->
-      <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl">
+      <div class="flex items-center space-x-1.5 bg-stone-200/70 p-1 rounded-xl">
         <button 
           @click="activeStatusTab = 'all'"
-          :class="activeStatusTab === 'all' ? 'bg-white text-[#0f172a] shadow-xs font-black' : 'text-slate-500 hover:text-slate-800 font-semibold'"
+          :class="activeStatusTab === 'all' ? 'bg-white text-[#1c1917] shadow-xs font-black' : 'text-stone-500 hover:text-stone-800 font-semibold'"
           class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center space-x-1.5"
         >
           <span>Semua Alat</span>
@@ -272,7 +272,7 @@ const goToMarketplace = () => {
 
         <button 
           @click="activeStatusTab = 'applied'"
-          :class="activeStatusTab === 'applied' ? 'bg-white text-[#0f172a] shadow-xs font-black' : 'text-slate-500 hover:text-slate-800 font-semibold'"
+          :class="activeStatusTab === 'applied' ? 'bg-white text-[#1c1917] shadow-xs font-black' : 'text-stone-500 hover:text-stone-800 font-semibold'"
           class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center space-x-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -282,7 +282,7 @@ const goToMarketplace = () => {
 
         <button 
           @click="activeStatusTab = 'unapplied'"
-          :class="activeStatusTab === 'unapplied' ? 'bg-white text-[#0f172a] shadow-xs font-black' : 'text-slate-500 hover:text-slate-800 font-semibold'"
+          :class="activeStatusTab === 'unapplied' ? 'bg-white text-[#1c1917] shadow-xs font-black' : 'text-stone-500 hover:text-stone-800 font-semibold'"
           class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center space-x-1.5"
         >
           <span>Belum Diterapkan</span>
@@ -293,20 +293,20 @@ const goToMarketplace = () => {
       <!-- Search & Category Dropdown -->
       <div class="flex items-center space-x-2">
         <div class="relative w-full sm:w-56">
-          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
             <SvgIcon name="search" className="w-3.5 h-3.5" />
           </span>
           <input 
             type="text" 
             v-model="searchQuery" 
             placeholder="Cari alat..." 
-            class="w-full bg-white border border-slate-200 rounded-xl pl-8.5 pr-3 py-1.5 text-xs text-[#0f172a] focus:outline-none focus:border-slate-400 font-semibold"
+            class="w-full bg-white border border-stone-200 rounded-xl pl-8.5 pr-3 py-1.5 text-xs text-[#1c1917] focus:outline-none focus:border-stone-400 font-semibold"
           />
         </div>
 
         <select 
           v-model="selectedCategory"
-          class="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+          class="bg-white border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-stone-700 focus:outline-none cursor-pointer"
         >
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
@@ -320,7 +320,7 @@ const goToMarketplace = () => {
         :key="tool.id"
         hoverable
         padding="p-5"
-        :class="isApplied(tool.id) ? 'border-[#bef264]/70 ring-1 ring-[#bef264]/25 bg-white' : 'border-slate-200/90 bg-white'"
+        :class="isApplied(tool.id) ? 'border-amber-400/80 ring-1 ring-amber-400/25 bg-white' : 'border-stone-200 bg-white'"
         class="flex flex-col justify-between group transition-all"
       >
         <!-- Card Top Body -->
@@ -328,7 +328,7 @@ const goToMarketplace = () => {
           <div class="flex items-start justify-between">
             <!-- Icon -->
             <div 
-              :class="isApplied(tool.id) ? 'bg-[#bef264]/20 border-[#bef264]/40 text-[#3f6212]' : 'bg-slate-100 border-slate-200 text-slate-500'"
+              :class="isApplied(tool.id) ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-stone-100 border-stone-200 text-stone-500'"
               class="w-11 h-11 rounded-2xl border flex items-center justify-center flex-shrink-0 transition-all shadow-2xs"
             >
               <SvgIcon :name="tool.icon" className="w-5.5 h-5.5" />
@@ -366,19 +366,19 @@ const goToMarketplace = () => {
           <!-- Info -->
           <div class="space-y-1">
             <div class="flex items-center space-x-1.5">
-              <h3 class="text-sm font-black text-[#0f172a] group-hover:text-[#3f6212] transition-colors leading-tight">
+              <h3 class="text-sm font-black text-[#1c1917] group-hover:text-amber-700 transition-colors leading-tight">
                 {{ tool.name }}
               </h3>
             </div>
-            <span class="text-[9.5px] font-bold text-slate-400 block">{{ tool.category }} &bull; {{ tool.publisher }}</span>
-            <p class="text-[11px] text-slate-500 leading-relaxed line-clamp-2">{{ tool.desc }}</p>
+            <span class="text-[9.5px] font-bold text-stone-400 block">{{ tool.category }} &bull; {{ tool.publisher }}</span>
+            <p class="text-[11px] text-stone-500 leading-relaxed line-clamp-2">{{ tool.desc }}</p>
           </div>
 
           <!-- Inherited Connection Info (Read-only on Agent Side) -->
-          <div class="bg-slate-50 border border-slate-150 rounded-xl p-2.5 text-[10px] space-y-0.5 text-slate-600">
+          <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] space-y-0.5 text-stone-600">
             <div class="flex items-center justify-between font-mono">
-              <span class="text-slate-400">Koneksi Workspace:</span>
-              <span class="font-bold text-[#0f172a] truncate max-w-[140px]">
+              <span class="text-stone-400">Koneksi Workspace:</span>
+              <span class="font-bold text-[#1c1917] truncate max-w-[140px]">
                 {{ tool.connectionDetails.account || tool.connectionDetails.service || tool.connectionDetails.endpoint || 'Internal AI' }}
               </span>
             </div>
@@ -390,7 +390,7 @@ const goToMarketplace = () => {
         </div>
 
         <!-- Card Bottom Controls -->
-        <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-4">
+        <div class="pt-3.5 border-t border-stone-100 flex items-center justify-between gap-2 mt-4">
           <!-- Parameter Config Button (Only when applied) -->
           <div>
             <Button 
@@ -399,7 +399,7 @@ const goToMarketplace = () => {
               variant="secondary"
               size="sm"
             >
-              <SvgIcon name="sliders" className="w-3.5 h-3.5 mr-1 text-slate-600" />
+              <SvgIcon name="sliders" className="w-3.5 h-3.5 mr-1 text-stone-600" />
               <span>Atur Parameter</span>
             </Button>
           </div>
@@ -409,14 +409,14 @@ const goToMarketplace = () => {
             <Button 
               @click="handleToggleTool(tool)"
               :variant="isApplied(tool.id) ? 'secondary' : 'primary'"
-              :class="isApplied(tool.id) ? 'bg-[#bef264]/25 border-[#bef264]/50 text-[#3f6212] font-black' : ''"
+              :class="isApplied(tool.id) ? 'bg-amber-100 border-amber-300 text-amber-900 font-black' : ''"
               size="sm"
             >
               <span v-if="isApplied(tool.id)" class="flex items-center space-x-1">
-                <SvgIcon name="check" className="w-3 h-3 text-[#3f6212]" />
+                <SvgIcon name="check" className="w-3 h-3 text-amber-800" />
                 <span>Diterapkan</span>
               </span>
-              <span v-else-if="tool.requiresConnection && tool.connectionStatus !== 'connected'" class="text-slate-400">
+              <span v-else-if="tool.requiresConnection && tool.connectionStatus !== 'connected'" class="text-stone-400">
                 Setup di Marketplace
               </span>
               <span v-else>
@@ -429,40 +429,40 @@ const goToMarketplace = () => {
     </div>
 
     <!-- Empty State -->
-    <Card v-if="agentTools.length === 0" padding="p-12" class="text-center space-y-3">
-      <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+    <Card v-if="agentTools.length === 0" padding="p-12" class="text-center space-y-3 border-stone-200">
+      <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
         <SvgIcon name="search" className="w-5 h-5" />
       </div>
-      <h3 class="text-xs font-bold text-slate-700">Tidak ada alat yang ditemukan</h3>
-      <p class="text-[11px] text-slate-400">Silakan ganti kata kunci pencarian atau reset filter status.</p>
+      <h3 class="text-xs font-bold text-stone-700">Tidak ada alat yang ditemukan</h3>
+      <p class="text-[11px] text-stone-400">Silakan ganti kata kunci pencarian atau reset filter status.</p>
     </Card>
 
     <!-- AGENT PARAMETERS CONFIGURATION MODAL (NO CREDENTIALS SETUP HERE) -->
     <transition name="fade">
       <div 
         v-if="showConfigModal && selectedTool" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs"
       >
-        <Card rounded="rounded-3xl" padding="p-0" shadow="shadow-2xl" class="w-full max-w-xl max-h-[88vh] overflow-hidden flex flex-col justify-between transform transition-all duration-200">
+        <Card rounded="rounded-3xl" padding="p-0" shadow="shadow-2xl" class="w-full max-w-xl max-h-[88vh] overflow-hidden flex flex-col justify-between transform transition-all duration-200 border-stone-200">
           
           <!-- Modal Header -->
-          <div class="p-5.5 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+          <div class="p-5.5 border-b border-stone-200/80 flex items-start justify-between bg-stone-50/70">
             <div class="flex items-center space-x-4">
-              <div class="w-11 h-11 bg-[#bef264]/20 border border-[#bef264]/30 rounded-2xl flex items-center justify-center text-[#3f6212]">
+              <div class="w-11 h-11 bg-amber-100 border border-amber-300 rounded-2xl flex items-center justify-center text-amber-900">
                 <SvgIcon :name="selectedTool.icon" className="w-5.5 h-5.5" />
               </div>
               <div>
                 <div class="flex items-center space-x-2">
-                  <h3 class="text-sm font-black text-[#0f172a]">{{ selectedTool.name }}</h3>
-                  <span class="text-[9px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded uppercase">Parameter Agen</span>
+                  <h3 class="text-sm font-black text-[#1c1917]">{{ selectedTool.name }}</h3>
+                  <span class="text-[9px] bg-stone-200 text-stone-700 font-bold px-2 py-0.5 rounded uppercase">Parameter Agen</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-0.5">Khusus untuk Agen: <strong>{{ agent?.name }}</strong></p>
+                <p class="text-[10px] text-stone-400 mt-0.5">Khusus untuk Agen: <strong>{{ agent?.name }}</strong></p>
               </div>
             </div>
 
             <button 
               @click="showConfigModal = false"
-              class="text-slate-400 hover:text-slate-700 p-2 rounded-xl transition-all cursor-pointer"
+              class="text-stone-400 hover:text-stone-700 p-2 rounded-xl transition-all cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -474,19 +474,19 @@ const goToMarketplace = () => {
           <div class="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
             
             <!-- Read-only Connection Info Box -->
-            <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl flex items-center justify-between text-slate-600">
+            <div class="bg-stone-50 border border-stone-200 p-3.5 rounded-2xl flex items-center justify-between text-stone-600">
               <div class="flex items-center space-x-2.5">
                 <SvgIcon name="shield" className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <div>
-                  <span class="text-[10.5px] font-bold text-slate-800 block">Koneksi Kredensial Global</span>
-                  <span class="text-[9.5px] text-slate-400 font-mono">
+                  <span class="text-[10.5px] font-bold text-stone-800 block">Koneksi Kredensial Global</span>
+                  <span class="text-[9.5px] text-stone-400 font-mono">
                     {{ selectedTool.connectionDetails.account || selectedTool.connectionDetails.endpoint || selectedTool.connectionDetails.service }}
                   </span>
                 </div>
               </div>
               <button 
                 @click="goToMarketplace" 
-                class="text-[10px] text-slate-500 hover:text-slate-800 font-bold underline cursor-pointer"
+                class="text-[10px] text-stone-500 hover:text-stone-800 font-bold underline cursor-pointer"
               >
                 Ubah di Marketplace
               </button>
@@ -497,10 +497,10 @@ const goToMarketplace = () => {
             <!-- 1. Google Sheets Agent Parameters -->
             <div v-if="selectedTool.id === 'sheets'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">File Spreadsheet Tujuan</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">File Spreadsheet Tujuan</label>
                 <select 
                   v-model="tempSettings.spreadsheetName"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0f172a] focus:outline-none cursor-pointer"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1c1917] focus:outline-none cursor-pointer"
                 >
                   <option>Data Leads & Penjualan 2026</option>
                   <option>Customer Support Tickets 2026</option>
@@ -509,46 +509,46 @@ const goToMarketplace = () => {
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lembar / Tab Worksheet</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Nama Lembar / Tab Worksheet</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.sheetTab"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                   placeholder="Sheet1 (Prospek Baru)"
                 />
               </div>
 
               <!-- Column Mapping Table -->
               <div class="space-y-2">
-                <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pemetaan Kolom Variabel Agen</span>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden font-mono text-[10.5px]">
+                <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Pemetaan Kolom Variabel Agen</span>
+                <div class="bg-stone-50 border border-stone-200 rounded-xl overflow-hidden font-mono text-[10.5px]">
                   <table class="w-full text-left">
                     <thead>
-                      <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                      <tr class="bg-stone-100 text-stone-600 border-b border-stone-200">
                         <th class="p-2.5 font-bold">Kolom di Spreadsheet</th>
                         <th class="p-2.5 font-bold">Data Agen Yang Dicatat</th>
                       </tr>
                     </thead>
-                    <tbody class="text-slate-700">
-                      <tr class="border-b border-slate-100">
-                        <td class="p-2.5 font-semibold text-slate-500">Kolom A</td>
-                        <td class="p-2.5 text-[#3f6212] font-bold">lead_name (Nama Calon Pelanggan)</td>
+                    <tbody class="text-stone-700">
+                      <tr class="border-b border-stone-200">
+                        <td class="p-2.5 font-semibold text-stone-500">Kolom A</td>
+                        <td class="p-2.5 text-amber-800 font-bold">lead_name (Nama Calon Pelanggan)</td>
                       </tr>
-                      <tr class="border-b border-slate-100">
-                        <td class="p-2.5 font-semibold text-slate-500">Kolom B</td>
-                        <td class="p-2.5 text-[#3f6212] font-bold">lead_whatsapp (Nomor Telepon)</td>
+                      <tr class="border-b border-stone-200">
+                        <td class="p-2.5 font-semibold text-stone-500">Kolom B</td>
+                        <td class="p-2.5 text-amber-800 font-bold">lead_whatsapp (Nomor Telepon)</td>
                       </tr>
                       <tr>
-                        <td class="p-2.5 font-semibold text-slate-500">Kolom C</td>
-                        <td class="p-2.5 text-[#3f6212] font-bold">interest_level (Minat Produk)</td>
+                        <td class="p-2.5 font-semibold text-stone-500">Kolom C</td>
+                        <td class="p-2.5 text-amber-800 font-bold">interest_level (Minat Produk)</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Catat Baris Otomatis Saat Selesai Chat</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Catat Baris Otomatis Saat Selesai Chat</span>
                 <ToggleSwitch v-model="tempSettings.autoAppend" />
               </div>
             </div>
@@ -556,36 +556,36 @@ const goToMarketplace = () => {
             <!-- 2. WhatsApp Admin Alerts Agent Parameters -->
             <div v-if="selectedTool.id === 'whatsapp_alerts'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nomor HP Admin Penerima Peringatan</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Nomor HP Admin Penerima Peringatan</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.recipientPhone"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
                   placeholder="Contoh: 6281234567890"
                 />
-                <p class="text-[9.5px] text-slate-400">Peringatan dari percakapan Agen ini akan dikirimkan langsung ke nomor WhatsApp di atas.</p>
+                <p class="text-[9.5px] text-stone-400">Peringatan dari percakapan Agen ini akan dikirimkan langsung ke nomor WhatsApp di atas.</p>
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Format Template Notifikasi Pesan</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Format Template Notifikasi Pesan</label>
                 <textarea 
                   rows="3" 
                   v-model="tempSettings.customMessageTemplate"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#0f172a] leading-relaxed"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1c1917] leading-relaxed"
                   placeholder="Tulis format notifikasi..."
                 ></textarea>
-                <span class="text-[9.5px] text-slate-400 block">
-                  Tag dinamis: <code v-pre class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-slate-700">{{lead_name}}</code>, <code v-pre class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-slate-700">{{lead_whatsapp}}</code>, <code v-pre class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-slate-700">{{interest_level}}</code>
+                <span class="text-[9.5px] text-stone-400 block">
+                  Tag dinamis: <code v-pre class="bg-stone-100 px-1 py-0.5 rounded font-mono font-bold text-stone-700">{{lead_name}}</code>, <code v-pre class="bg-stone-100 px-1 py-0.5 rounded font-mono font-bold text-stone-700">{{lead_whatsapp}}</code>, <code v-pre class="bg-stone-100 px-1 py-0.5 rounded font-mono font-bold text-stone-700">{{interest_level}}</code>
                 </span>
               </div>
 
-              <div class="space-y-2 border-t border-slate-100 pt-3">
+              <div class="space-y-2 border-t border-stone-200/80 pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="font-bold text-slate-700 text-xs">Peringatan saat minat tinggi (High Interest)</span>
+                  <span class="font-bold text-stone-700 text-xs">Peringatan saat minat tinggi (High Interest)</span>
                   <ToggleSwitch v-model="tempSettings.alertOnHighInterest" />
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="font-bold text-slate-700 text-xs">Peringatan saat pelanggan minta bicara dengan manusia</span>
+                  <span class="font-bold text-stone-700 text-xs">Peringatan saat pelanggan minta bicara dengan manusia</span>
                   <ToggleSwitch v-model="tempSettings.alertOnHumanRequest" />
                 </div>
               </div>
@@ -594,10 +594,10 @@ const goToMarketplace = () => {
             <!-- 3. Webhook Agent Parameters -->
             <div v-if="selectedTool.id === 'webhook'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pemicu Event (Trigger)</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Pemicu Event (Trigger)</label>
                 <select 
                   v-model="tempSettings.eventTrigger"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0f172a] cursor-pointer"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1c1917] cursor-pointer"
                 >
                   <option value="lead_conversion">Saat Prospek Berkualifikasi (lead_conversion)</option>
                   <option value="chat_ended">Saat Sesi Chat Selesai (chat_ended)</option>
@@ -606,17 +606,17 @@ const goToMarketplace = () => {
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tag / Pengenal Agen Khusus</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Tag / Pengenal Agen Khusus</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.agentTag"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
                   placeholder="budi_sales_pro"
                 />
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Sertakan seluruh transkrip percakapan dalam payload</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Sertakan seluruh transkrip percakapan dalam payload</span>
                 <ToggleSwitch v-model="tempSettings.includeHistory" />
               </div>
             </div>
@@ -624,27 +624,27 @@ const goToMarketplace = () => {
             <!-- 4. Midtrans Payment Agent Parameters -->
             <div v-if="selectedTool.id === 'midtrans'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Masa Berlaku Invoice Link (Jam)</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Masa Berlaku Invoice Link (Jam)</label>
                 <input 
                   type="number" 
                   v-model="tempSettings.expiryHours"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                   placeholder="24"
                 />
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Memo / Awalan Deskripsi Tagihan</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Memo / Awalan Deskripsi Tagihan</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.memoPrefix"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                   placeholder="Order Produk via Agen Budi"
                 />
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Kirim tautan tagihan otomatis ke ruang chat pembeli</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Kirim tautan tagihan otomatis ke ruang chat pembeli</span>
                 <ToggleSwitch v-model="tempSettings.sendInvoiceInChat" />
               </div>
             </div>
@@ -652,21 +652,21 @@ const goToMarketplace = () => {
             <!-- 5. n8n Node Agent Parameters -->
             <div v-if="selectedTool.id === 'n8n_node'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Workflow Target n8n</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Nama Workflow Target n8n</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.workflowName"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                   placeholder="Lead Nurture Flow"
                 />
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tag Kustom</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Tag Kustom</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.customTag"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
                   placeholder="priority_high"
                 />
               </div>
@@ -675,17 +675,17 @@ const goToMarketplace = () => {
             <!-- 6. Slack Agent Parameters -->
             <div v-if="selectedTool.id === 'slack'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Channel Tujuan Spesifik Agen</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Channel Tujuan Spesifik Agen</label>
                 <input 
                   type="text" 
                   v-model="tempSettings.channelTarget"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                   placeholder="#leads-sales-budi"
                 />
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Hanya kirim saat butuh bantuan CS (Handoff)</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Hanya kirim saat butuh bantuan CS (Handoff)</span>
                 <ToggleSwitch v-model="tempSettings.notifyOnHandoffOnly" />
               </div>
             </div>
@@ -693,10 +693,10 @@ const goToMarketplace = () => {
             <!-- 7. Lead Qualifier (Core AI) -->
             <div v-if="selectedTool.id === 'lead_qualifier'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Standar Ambang Batas Kualifikasi</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Standar Ambang Batas Kualifikasi</label>
                 <select 
                   v-model="tempSettings.qualificationThreshold"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0f172a] cursor-pointer"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1c1917] cursor-pointer"
                 >
                   <option>Tinggi (Siap Beli)</option>
                   <option>Sedang (Berminat & Bertanya)</option>
@@ -704,13 +704,13 @@ const goToMarketplace = () => {
                 </select>
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Ekstrak perkiraan anggaran (budget) calon pembeli</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Ekstrak perkiraan anggaran (budget) calon pembeli</span>
                 <ToggleSwitch v-model="tempSettings.autoExtractBudget" />
               </div>
 
               <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-700 text-xs">Terapkan aturan ketat sesuai SOP bisnis</span>
+                <span class="font-bold text-stone-700 text-xs">Terapkan aturan ketat sesuai SOP bisnis</span>
                 <ToggleSwitch v-model="tempSettings.strictRules" />
               </div>
             </div>
@@ -718,7 +718,7 @@ const goToMarketplace = () => {
             <!-- 8. FAQ Knowledge Reader (Core AI) -->
             <div v-if="selectedTool.id === 'faq_answerer'" class="space-y-4">
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">
                   Tingkat Keyakinan Dokumen (Confidence): {{ Math.round((tempSettings.confidenceThreshold || 0.8) * 100) }}%
                 </label>
                 <input 
@@ -727,24 +727,24 @@ const goToMarketplace = () => {
                   max="0.95" 
                   step="0.05"
                   v-model.number="tempSettings.confidenceThreshold"
-                  class="w-full cursor-pointer accent-[#3f6212]"
+                  class="w-full cursor-pointer accent-amber-500"
                 />
-                <span class="text-[9.5px] text-slate-400 block">Semakin tinggi, semakin ketat kecocokan jawaban dengan berkas SOP.</span>
+                <span class="text-[9.5px] text-stone-400 block">Semakin tinggi, semakin ketat kecocokan jawaban dengan berkas SOP.</span>
               </div>
 
               <div class="space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Maksimal Kutipan Referensi RAG</label>
+                <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Maksimal Kutipan Referensi RAG</label>
                 <input 
                   type="number" 
                   min="1" 
                   max="8" 
                   v-model.number="tempSettings.maxCitations"
-                  class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0f172a]"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1c1917]"
                 />
               </div>
 
-              <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                <span class="font-bold text-slate-700 text-xs">Jangan berhalusinasi jika dokumen tidak memiliki jawaban</span>
+              <div class="flex items-center justify-between border-t border-stone-200/80 pt-3">
+                <span class="font-bold text-stone-700 text-xs">Jangan berhalusinasi jika dokumen tidak memiliki jawaban</span>
                 <ToggleSwitch v-model="tempSettings.strictDriveOnly" />
               </div>
             </div>
@@ -752,7 +752,7 @@ const goToMarketplace = () => {
           </div>
 
           <!-- Modal Footer -->
-          <div class="p-5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-end space-x-3">
+          <div class="p-5 border-t border-stone-200/80 bg-stone-50/80 flex items-center justify-end space-x-3">
             <Button 
               variant="secondary" 
               size="sm"

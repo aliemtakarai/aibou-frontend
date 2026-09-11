@@ -35,8 +35,8 @@ const classes = computed(() => {
     
     // Background and border modes
     props.glass 
-      ? 'bg-white/80 border-slate-200/80 backdrop-blur-md' 
-      : 'bg-white border-slate-200/80',
+      ? 'bg-white/85 border-stone-200/80 backdrop-blur-md' 
+      : 'bg-white border-stone-200/80',
       
     // Shadows, padding, and borders
     props.shadow,
@@ -45,12 +45,12 @@ const classes = computed(() => {
     
     // Hover interactions
     props.hoverable 
-      ? 'hover:border-slate-350 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]' 
+      ? 'hover:border-stone-300 hover:shadow-[0_8px_30px_rgba(41,37,36,0.05)]' 
       : '',
       
     // Click interactions
     props.clickable 
-      ? 'cursor-pointer active:scale-99 hover:bg-slate-50/20' 
+      ? 'cursor-pointer active:scale-99 hover:bg-stone-50/40' 
       : ''
   ]
 })

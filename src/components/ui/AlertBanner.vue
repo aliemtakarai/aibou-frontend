@@ -56,7 +56,7 @@ const emit = defineEmits(['close'])
     <button 
       v-if="dismissible" 
       @click="emit('close')"
-      class="text-slate-450 hover:text-slate-700 transition-colors cursor-pointer text-sm font-bold pl-2"
+      class="text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-sm font-bold pl-2"
     >
       &times;
     </button>

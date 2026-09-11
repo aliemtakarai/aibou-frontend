@@ -28,32 +28,32 @@ const tabs = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f4f7f6] text-[#0f172a] flex flex-col font-sans relative overflow-hidden">
-    <!-- Soft light green gradient glow -->
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_-20%,rgba(190,242,100,0.08),rgba(255,255,255,0))] pointer-events-none"></div>
+  <div class="min-h-screen bg-[#f5f5f4] text-[#1c1917] flex flex-col font-sans relative overflow-hidden">
+    <!-- Soft warm amber gradient glow -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_-20%,rgba(245,158,11,0.06),rgba(245,245,244,0))] pointer-events-none"></div>
 
     <!-- Top Header -->
-    <header class="bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between shadow-[0_2px_15px_rgba(0,0,0,0.015)] relative z-20">
+    <header class="bg-white border-b border-stone-200/90 px-6 py-4 flex items-center justify-between shadow-[0_2px_15px_rgba(0,0,0,0.015)] relative z-20">
       <div class="flex items-center space-x-4">
         <button 
           @click="goBack"
-          class="bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-[#0f172a] px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-slate-300 flex items-center space-x-2 cursor-pointer"
+          class="bg-stone-50 hover:bg-stone-100 text-stone-600 hover:text-[#1c1917] px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-stone-200 hover:border-stone-300 flex items-center space-x-2 cursor-pointer"
         >
           <SvgIcon name="arrow-left" className="w-3.5 h-3.5" />
           <span>Konsol</span>
         </button>
-        <div class="h-6 w-[1px] bg-slate-200"></div>
+        <div class="h-6 w-[1px] bg-stone-200"></div>
         <div v-if="agent" class="flex items-center space-x-3">
-          <img :src="agent.avatar" :alt="agent.name" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm" />
+          <img :src="agent.avatar" :alt="agent.name" class="w-10 h-10 rounded-full object-cover border border-stone-200 shadow-sm" />
           <div>
             <div class="flex items-center space-x-2">
-              <h2 class="text-sm font-bold text-[#0f172a] leading-none">{{ agent.name }}</h2>
-              <span class="bg-[#bef264]/20 text-[#3f6212] text-[9px] px-2 py-0.5 rounded-full font-bold border border-[#bef264]/30 flex items-center space-x-1">
-                <span class="w-1 h-1 rounded-full bg-[#a3e635]"></span>
+              <h2 class="text-sm font-bold text-[#1c1917] leading-none">{{ agent.name }}</h2>
+              <span class="bg-amber-100 text-amber-900 text-[9px] px-2 py-0.5 rounded-full font-bold border border-amber-200 flex items-center space-x-1">
+                <span class="w-1 h-1 rounded-full bg-amber-500"></span>
                 <span>Aktif</span>
               </span>
             </div>
-            <p class="text-[11px] text-slate-400 font-medium mt-1 leading-none">{{ agent.role }}</p>
+            <p class="text-[11px] text-stone-400 font-medium mt-1 leading-none">{{ agent.role }}</p>
           </div>
         </div>
       </div>
@@ -61,15 +61,15 @@ const tabs = [
       <div class="flex items-center space-x-3">
         <router-link 
           to="/tools" 
-          class="hidden sm:flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#0f172a] bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all"
+          class="hidden sm:flex items-center space-x-1.5 text-xs font-bold text-stone-600 hover:text-[#1c1917] bg-stone-50 hover:bg-stone-100 border border-stone-200 px-3 py-1.5 rounded-xl transition-all"
         >
-          <SvgIcon name="store" className="w-3.5 h-3.5 text-slate-500" />
+          <SvgIcon name="store" className="w-3.5 h-3.5 text-stone-500" />
           <span>Marketplace Alat</span>
         </router-link>
 
-        <div class="text-slate-450 text-xs hidden md:flex items-center space-x-2 font-medium">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#a3e635]"></span>
-          <span class="font-mono text-[10px] text-slate-500">Ruang Kerja: /aibou/{{ agentId }}</span>
+        <div class="text-stone-400 text-xs hidden md:flex items-center space-x-2 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span class="font-mono text-[10px] text-stone-500">Ruang Kerja: /aibou/{{ agentId }}</span>
         </div>
       </div>
     </header>
@@ -77,51 +77,51 @@ const tabs = [
     <!-- Main Workspace -->
     <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
       <!-- Tabs Sidebar Navigation (Hidden on Mobile & Tablet, Flex on Desktop) -->
-      <aside class="hidden md:flex md:w-64 bg-white border-r border-slate-200/80 p-4 flex-col justify-between">
+      <aside class="hidden md:flex md:w-64 bg-white border-r border-stone-200/90 p-4 flex-col justify-between">
         <div class="space-y-1">
-          <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-3">Pengaturan Agen</div>
+          <div class="text-[9px] font-bold text-stone-400 uppercase tracking-widest px-3 mb-3">Pengaturan Agen</div>
           
           <router-link
             v-for="tab in tabs"
             :key="tab.path"
             :to="`/agent/${agentId}/${tab.path}`"
-            class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-655 hover:text-[#0f172a] hover:bg-slate-50 transition-all group border border-transparent"
+            class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all group border border-transparent"
             active-class="active-tab-style"
           >
-            <SvgIcon :name="tab.icon" className="w-4 h-4 flex-shrink-0 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            <SvgIcon :name="tab.icon" className="w-4 h-4 flex-shrink-0 text-stone-400 group-hover:text-stone-600 transition-colors" />
             <span>{{ tab.name }}</span>
           </router-link>
         </div>
 
         <!-- Global Marketplace Shortcut Card at Bottom of Sidebar -->
-        <div class="border-t border-slate-150 pt-3">
+        <div class="border-t border-stone-200 pt-3">
           <router-link
             to="/tools"
-            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-[#0f172a] hover:bg-slate-50 transition-all border border-slate-200/90 group"
+            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all border border-stone-200 group"
           >
-            <SvgIcon name="store" className="w-4 h-4 text-slate-400 group-hover:text-[#3f6212] transition-colors" />
+            <SvgIcon name="store" className="w-4 h-4 text-stone-400 group-hover:text-amber-700 transition-colors" />
             <span>Marketplace Alat</span>
-            <span class="bg-[#bef264]/30 text-[#3f6212] text-[9px] px-1.5 py-0.2 rounded font-black ml-auto">Global</span>
+            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] px-1.5 py-0.2 rounded font-bold ml-auto">Global</span>
           </router-link>
         </div>
       </aside>
 
       <!-- Active Tab View Outlet -->
-      <main class="flex-1 overflow-auto bg-[#f4f7f6] p-4 sm:p-6 pb-28 md:pb-6 flex flex-col">
+      <main class="flex-1 overflow-auto bg-[#f5f5f4] p-4 sm:p-6 pb-28 md:pb-6 flex flex-col">
         <router-view />
       </main>
 
       <!-- Floating Bottom Tab Bar Navigation for Mobile & Tablet (Hidden on Desktop) -->
       <div class="flex md:hidden fixed bottom-4 inset-x-4 max-w-md mx-auto z-50 pointer-events-none">
-        <nav class="w-full bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-1.5 flex items-center justify-around shadow-[0_8px_30px_rgba(0,0,0,0.12)] pointer-events-auto">
+        <nav class="w-full bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl p-1.5 flex items-center justify-around shadow-[0_8px_30px_rgba(0,0,0,0.08)] pointer-events-auto">
           <router-link
             v-for="tab in tabs"
             :key="tab.path"
             :to="`/agent/${agentId}/${tab.path}`"
-            class="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-slate-500 hover:text-slate-900 transition-all select-none group"
+            class="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-stone-500 hover:text-stone-900 transition-all select-none group"
             active-class="mobile-active-tab-style"
           >
-            <SvgIcon :name="tab.icon" className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            <SvgIcon :name="tab.icon" className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-stone-400 group-hover:text-stone-600 transition-colors" />
             <span class="text-[9px] sm:text-[10px] font-bold mt-1 tracking-tight truncate">{{ tab.shortName }}</span>
           </router-link>
         </nav>
@@ -132,24 +132,24 @@ const tabs = [
 
 <style>
 .active-tab-style {
-  background-color: #bef264 !important;
-  color: #0f172a !important;
+  background-color: #f59e0b !important;
+  color: #1c1917 !important;
   font-weight: 700 !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(190, 242, 100, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25) !important;
 }
 .active-tab-style svg {
-  color: #0f172a !important;
+  color: #1c1917 !important;
 }
 .mobile-active-tab-style {
-  background-color: #bef264 !important;
-  color: #0f172a !important;
+  background-color: #f59e0b !important;
+  color: #1c1917 !important;
   font-weight: 700 !important;
   border-radius: 10px !important;
-  box-shadow: 0 2px 10px rgba(190, 242, 100, 0.3) !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3) !important;
 }
 .mobile-active-tab-style svg {
-  color: #0f172a !important;
+  color: #1c1917 !important;
   transform: scale(1.05);
   transition: transform 0.2s ease;
 }

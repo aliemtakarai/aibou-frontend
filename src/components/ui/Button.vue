@@ -42,19 +42,19 @@ const classes = computed(() => {
     
     // Color style variants
     props.variant === 'primary' 
-      ? 'bg-gradient-to-r from-[#0f172a] to-slate-800 hover:from-slate-900 hover:to-black text-white shadow-sm hover:shadow-[0_4px_15px_rgba(15,23,42,0.12)]' 
+      ? 'bg-gradient-to-r from-[#1c1917] to-stone-800 hover:from-stone-900 hover:to-black text-white shadow-sm hover:shadow-[0_4px_15px_rgba(28,25,23,0.15)]' 
       : '',
     props.variant === 'secondary' 
-      ? 'bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-2xs' 
+      ? 'bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 shadow-2xs' 
       : '',
     props.variant === 'danger' 
-      ? 'text-red-655 hover:text-red-800 hover:bg-red-50/50' 
+      ? 'text-red-600 hover:text-red-800 hover:bg-red-50/50' 
       : '',
     props.variant === 'ghost' 
-      ? 'text-slate-500 hover:text-slate-750 hover:bg-slate-50' 
+      ? 'text-stone-500 hover:text-stone-800 hover:bg-stone-50' 
       : '',
     props.variant === 'social' 
-      ? 'bg-white hover:bg-slate-50 border border-slate-200 text-slate-750 shadow-2xs' 
+      ? 'bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 shadow-2xs' 
       : ''
   ]
 })

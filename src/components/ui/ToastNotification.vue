@@ -45,28 +45,28 @@ watch(
   <transition name="toast-slide">
     <div 
       v-if="show" 
-      class="fixed top-6 right-6 bg-[#0f172a] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 z-50 flex items-center space-x-3 backdrop-blur-md"
+      class="fixed top-6 right-6 bg-[#1c1917] text-white text-xs px-5 py-3.5 rounded-2xl shadow-xl border border-stone-800 z-50 flex items-center space-x-3 backdrop-blur-md"
     >
       <!-- Indicator Dot based on type -->
       <span 
         :class="{
-          'bg-[#bef264]': type === 'success',
+          'bg-amber-400': type === 'success',
           'bg-rose-500': type === 'error',
-          'bg-amber-400': type === 'warning',
-          'bg-blue-400': type === 'info'
+          'bg-amber-500': type === 'warning',
+          'bg-stone-300': type === 'info'
         }"
         class="w-2.5 h-2.5 rounded-full animate-pulse flex-shrink-0"
       ></span>
       
       <div class="flex flex-col text-left">
-        <span class="font-bold tracking-wide text-slate-100">{{ title }}</span>
-        <span class="text-[10px] text-slate-400 mt-0.5 leading-relaxed font-semibold">{{ message }}</span>
+        <span class="font-bold tracking-wide text-stone-100">{{ title }}</span>
+        <span class="text-[10px] text-stone-400 mt-0.5 leading-relaxed font-semibold">{{ message }}</span>
       </div>
       
       <!-- Close button -->
       <button 
         @click="emit('update:show', false); emit('close')" 
-        class="text-slate-500 hover:text-slate-300 transition-colors pl-2 cursor-pointer font-bold text-sm leading-none"
+        class="text-stone-500 hover:text-stone-300 transition-colors pl-2 cursor-pointer font-bold text-sm leading-none"
       >
         &times;
       </button>
