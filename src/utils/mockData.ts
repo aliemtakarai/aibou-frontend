@@ -741,3 +741,95 @@ export const updateAgentToolSettings = (agentId: string, toolId: string, newSett
     ...newSettings
   }
 }
+
+// ----------------------------------------------------
+// 9. Token Limit & Usage Specifications
+// ----------------------------------------------------
+export interface AgentTokenUsage {
+  agentId: string
+  agentName: string
+  tokensUsed: number
+  tokenLimit: number // per-agent cap
+  promptTokens: number
+  completionTokens: number
+  conversationsCount: number
+}
+
+export interface WorkspaceTokenQuota {
+  planName: string
+  monthlyLimit: number
+  usedTokens: number
+  promptTokens: number
+  completionTokens: number
+  ragEmbeddingTokens: number
+  billingPeriodStart: string
+  billingPeriodEnd: string
+  alertThresholdPercent: number // e.g. 80
+  hardStopEnabled: boolean
+  dailyAverage: number
+  dailyRateLimitPerAgent: number
+  agentUsage: Record<string, AgentTokenUsage>
+}
+
+export const mockTokenQuota = ref<WorkspaceTokenQuota>({
+  planName: 'Aibou Ultra Premium',
+  monthlyLimit: 2500000,
+  usedTokens: 1842500,
+  promptTokens: 1140000,
+  completionTokens: 522500,
+  ragEmbeddingTokens: 180000,
+  billingPeriodStart: '01 Sep 2026',
+  billingPeriodEnd: '30 Sep 2026',
+  alertThresholdPercent: 80,
+  hardStopEnabled: true,
+  dailyAverage: 61400,
+  dailyRateLimitPerAgent: 75000,
+  agentUsage: {
+    'budi-sales': {
+      agentId: 'budi-sales',
+      agentName: 'Budi (Admin Sales)',
+      tokensUsed: 980400,
+      tokenLimit: 1200000,
+      promptTokens: 610000,
+      completionTokens: 290400,
+      conversationsCount: 3240
+    },
+    'siti-support': {
+      agentId: 'siti-support',
+      agentName: 'Siti (Customer Support)',
+      tokensUsed: 542100,
+      tokenLimit: 800000,
+      promptTokens: 340000,
+      completionTokens: 152100,
+      conversationsCount: 1890
+    },
+    'andi-tech': {
+      agentId: 'andi-tech',
+      agentName: 'Andi (IT Troubleshooter)',
+      tokensUsed: 320000,
+      tokenLimit: 500000,
+      promptTokens: 190000,
+      completionTokens: 80000,
+      conversationsCount: 980
+    }
+  }
+})
+
+export const topUpTokens = (amount: number) => {
+  mockTokenQuota.value.monthlyLimit += amount
+}
+
+export const updateTokenLimits = (threshold: number, hardStop: boolean, dailyRateLimit?: number, agentLimits?: Record<string, number>) => {
+  mockTokenQuota.value.alertThresholdPercent = threshold
+  mockTokenQuota.value.hardStopEnabled = hardStop
+  if (dailyRateLimit !== undefined) {
+    mockTokenQuota.value.dailyRateLimitPerAgent = dailyRateLimit
+  }
+  if (agentLimits) {
+    for (const [id, lim] of Object.entries(agentLimits)) {
+      if (mockTokenQuota.value.agentUsage[id]) {
+        mockTokenQuota.value.agentUsage[id].tokenLimit = lim
+      }
+    }
+  }
+}

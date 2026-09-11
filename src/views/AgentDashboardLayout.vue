@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockAgents } from '../utils/mockData'
+import { mockAgents, mockTokenQuota } from '../utils/mockData'
 import SvgIcon from '../components/ui/SvgIcon.vue'
 
 const route = useRoute()
@@ -11,6 +11,15 @@ const agentId = computed(() => route.params.id as string)
 
 const agent = computed(() => {
   return mockAgents.value.find(a => a.id === agentId.value)
+})
+
+const agentTokenUsage = computed(() => {
+  return mockTokenQuota.value.agentUsage[agentId.value]
+})
+
+const agentUsagePercent = computed(() => {
+  if (!agentTokenUsage.value || !agentTokenUsage.value.tokenLimit) return 0
+  return Math.min(100, Math.round((agentTokenUsage.value.tokensUsed / agentTokenUsage.value.tokenLimit) * 100))
 })
 
 const goBack = () => {
@@ -93,16 +102,56 @@ const tabs = [
           </router-link>
         </div>
 
-        <!-- Global Marketplace Shortcut Card at Bottom of Sidebar -->
-        <div class="border-t border-stone-200 pt-3">
-          <router-link
-            to="/tools"
-            class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all border border-stone-200 group"
-          >
-            <SvgIcon name="store" className="w-4 h-4 text-stone-400 group-hover:text-amber-700 transition-colors" />
-            <span>Marketplace Alat</span>
-            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] px-1.5 py-0.2 rounded font-bold ml-auto">Global</span>
-          </router-link>
+        <!-- Bottom Section: Pinned to bottom of Sidebar -->
+        <div class="space-y-3 pt-4 border-t border-stone-200">
+          <!-- Compact Agent Token Usage Card -->
+          <div v-if="agentTokenUsage" class="bg-stone-50 border border-stone-200/90 rounded-2xl p-3.5 space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between text-[10.5px]">
+              <span class="text-stone-500 font-bold uppercase tracking-wider flex items-center space-x-1.5">
+                <SvgIcon name="zap" className="w-3.5 h-3.5 text-amber-600" />
+                <span>Token Agen</span>
+              </span>
+              <span class="font-mono font-bold text-stone-800">
+                {{ (agentTokenUsage.tokensUsed / 1000).toFixed(1) }}K / {{ (agentTokenUsage.tokenLimit / 1000).toFixed(0) }}K
+              </span>
+            </div>
+            
+            <div class="h-1.5 w-full bg-stone-200/80 rounded-full overflow-hidden">
+              <div 
+                :style="{ width: `${agentUsagePercent}%` }"
+                :class="agentUsagePercent >= 80 ? 'bg-amber-500' : 'bg-stone-700'"
+                class="h-full rounded-full transition-all duration-300"
+              ></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[9.5px] text-stone-400 pt-0.5">
+              <span>{{ agentUsagePercent }}% Terpakai</span>
+              <router-link to="/tokens" class="text-amber-700 font-bold hover:underline">
+                Rincian &rarr;
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Links (Tokens & Marketplace) -->
+          <div class="space-y-1.5">
+            <router-link
+              to="/tokens"
+              class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all border border-stone-200 group"
+            >
+              <SvgIcon name="gauge" className="w-4 h-4 text-stone-400 group-hover:text-amber-700 transition-colors" />
+              <span>Analisis Token</span>
+              <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] px-1.5 py-0.2 rounded font-bold ml-auto">Kuota</span>
+            </router-link>
+
+            <router-link
+              to="/tools"
+              class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all border border-stone-200 group"
+            >
+              <SvgIcon name="store" className="w-4 h-4 text-stone-400 group-hover:text-amber-700 transition-colors" />
+              <span>Marketplace Alat</span>
+              <span class="bg-stone-100 text-stone-600 border border-stone-200 text-[9px] px-1.5 py-0.2 rounded font-bold ml-auto">Global</span>
+            </router-link>
+          </div>
         </div>
       </aside>
 

@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { mockAgents, mockMarketplaceTools, mockAgentToolSettings } from '../utils/mockData'
+import { 
+  mockAgents, 
+  mockMarketplaceTools, 
+  mockAgentToolSettings,
+  mockTokenQuota,
+  topUpTokens,
+  updateTokenLimits 
+} from '../utils/mockData'
 import { useRouter, useRoute } from 'vue-router'
 import StatCard from '../components/ui/StatCard.vue'
 import ToastNotification from '../components/ui/ToastNotification.vue'
 import Card from '../components/ui/Card.vue'
 import Button from '../components/ui/Button.vue'
 import SvgIcon from '../components/ui/SvgIcon.vue'
+import ToggleSwitch from '../components/ui/ToggleSwitch.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,6 +45,81 @@ const getAgentAppliedTools = (agentId: string) => {
   if (!settings) return []
   const appliedIds = Object.keys(settings).filter(id => settings[id]?.applied)
   return mockMarketplaceTools.value.filter(t => appliedIds.includes(t.id))
+}
+
+// ----------------------------------------------------
+// Token Limit & Usage Computed & State
+// ----------------------------------------------------
+const tokenUsagePercent = computed(() => {
+  if (!mockTokenQuota.value.monthlyLimit) return 0
+  return Math.min(100, Math.round((mockTokenQuota.value.usedTokens / mockTokenQuota.value.monthlyLimit) * 1000) / 10)
+})
+
+const remainingTokens = computed(() => {
+  return Math.max(0, mockTokenQuota.value.monthlyLimit - mockTokenQuota.value.usedTokens)
+})
+
+const isNearTokenLimit = computed(() => {
+  return tokenUsagePercent.value >= mockTokenQuota.value.alertThresholdPercent
+})
+
+const formatNumber = (num: number) => {
+  return new Intl.NumberFormat('id-ID').format(num)
+}
+
+const formatCompactTokens = (num: number) => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2) + 'M'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
+  }
+  return num.toString()
+}
+
+// Token Modals State
+const showTokenSettingsModal = ref(false)
+const showTopUpModal = ref(false)
+
+// Token Settings Form State
+const tempThreshold = ref(mockTokenQuota.value.alertThresholdPercent)
+const tempHardStop = ref(mockTokenQuota.value.hardStopEnabled)
+const tempDailyRate = ref(mockTokenQuota.value.dailyRateLimitPerAgent)
+const tempAgentLimits = ref<Record<string, number>>({})
+
+const openTokenSettings = () => {
+  tempThreshold.value = mockTokenQuota.value.alertThresholdPercent
+  tempHardStop.value = mockTokenQuota.value.hardStopEnabled
+  tempDailyRate.value = mockTokenQuota.value.dailyRateLimitPerAgent
+  tempAgentLimits.value = {}
+  for (const [key, val] of Object.entries(mockTokenQuota.value.agentUsage)) {
+    tempAgentLimits.value[key] = val.tokenLimit
+  }
+  showTokenSettingsModal.value = true
+}
+
+const saveTokenSettings = () => {
+  updateTokenLimits(tempThreshold.value, tempHardStop.value, tempDailyRate.value, tempAgentLimits.value)
+  showTokenSettingsModal.value = false
+  globalToastMessage.value = 'Pengaturan batas kuota token berhasil diperbarui!'
+  showGlobalToast.value = true
+  setTimeout(() => { showGlobalToast.value = false }, 3000)
+}
+
+// Top Up Package State
+const topUpPackages = [
+  { amount: 500000, price: 'Rp 150.000', label: '+500.000 Token', badge: 'Standar' },
+  { amount: 1000000, price: 'Rp 280.000', label: '+1.000.000 Token', badge: 'Hemat 15%' },
+  { amount: 2500000, price: 'Rp 650.000', label: '+2.500.000 Token', badge: 'Terpopuler', popular: true }
+]
+const selectedTopUpAmount = ref(1000000)
+
+const applyTopUp = () => {
+  topUpTokens(selectedTopUpAmount.value)
+  showTopUpModal.value = false
+  globalToastMessage.value = `Berhasil menambah ${formatNumber(selectedTopUpAmount.value)} Token ke kuota workspace!`
+  showGlobalToast.value = true
+  setTimeout(() => { showGlobalToast.value = false }, 3500)
 }
 
 // Modal State
@@ -73,7 +156,7 @@ const activeSettingsTab = ref<'password' | 'subscription'>('password')
 const showSettingsToast = ref(false)
 const settingsToastMessage = ref('')
 
-const selectedPlan = ref('Pro')
+const selectedPlan = ref('Ultra')
 
 const selectPlan = (planName: string) => {
   if (selectedPlan.value === planName) return
@@ -90,8 +173,10 @@ const currentPlanDetails = computed(() => {
     return {
       name: 'Aibou Pro SaaS',
       price: 'Rp 1.499.000',
+      tokenQuota: '1.000.000 Token / bulan',
       features: [
         'Hingga 3 Agen AI Aktif secara bersamaan.',
+        'Kuata Token: 1.000.000 Token LLM per bulan.',
         'Basis Pengetahuan RAG (Maksimal 100 Dokumen Vektor).',
         'Integrasi Google Sheets & Webhook API dasar.'
       ]
@@ -100,8 +185,10 @@ const currentPlanDetails = computed(() => {
     return {
       name: 'Aibou Ultra Premium',
       price: 'Rp 2.999.000',
+      tokenQuota: '2.500.000 Token / bulan',
       features: [
         'Hingga 10 Agen AI Aktif secara bersamaan.',
+        'Kuata Token: 2.500.000 Token LLM per bulan.',
         'Basis Pengetahuan RAG (Maksimal 1.000 Dokumen Vektor).',
         'Semua Koneksi Keahlian (Midtrans, WhatsApp Alerts, n8n).',
         'Prioritas Server Menengah (Kecepatan respon ~1.2s).'
@@ -111,8 +198,10 @@ const currentPlanDetails = computed(() => {
     return {
       name: 'Aibou Max Enterprise',
       price: 'Rp 5.999.000',
+      tokenQuota: '7.500.000 Token / bulan',
       features: [
         'Jumlah Agen AI Aktif Tanpa Batas.',
+        'Kuata Token: 7.500.000 Token LLM per bulan.',
         'Basis Pengetahuan RAG & File Dokumen Tanpa Batas.',
         'Akses API developer mentah & pemicu workflow tak terbatas.',
         'Server Dedicated Utama dengan latensi super cepat (<1.0s).'
@@ -210,6 +299,15 @@ onMounted(() => {
               <span>Marketplace Alat</span>
               <span class="bg-[#1c1917] text-[#f59e0b] text-[9px] px-1.5 py-0.2 rounded-full font-black ml-1">{{ mockMarketplaceTools.length }}</span>
             </router-link>
+
+            <router-link 
+              to="/tokens" 
+              class="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all flex items-center space-x-2"
+            >
+              <SvgIcon name="gauge" className="w-4 h-4 text-stone-400" />
+              <span>Penggunaan Token</span>
+              <span class="bg-stone-200 text-stone-700 text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1">{{ tokenUsagePercent }}%</span>
+            </router-link>
           </nav>
         </div>
 
@@ -247,6 +345,14 @@ onMounted(() => {
               >
                 <SvgIcon name="store" className="w-3.5 h-3.5 text-stone-400" />
                 <span>Marketplace Alat</span>
+              </router-link>
+              <router-link 
+                to="/tokens" 
+                class="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 font-bold flex items-center space-x-2"
+                @click="showUserDropdown = false"
+              >
+                <SvgIcon name="gauge" className="w-3.5 h-3.5 text-stone-400" />
+                <span>Penggunaan Token</span>
               </router-link>
               <button 
                 @click="openSettings"
@@ -334,6 +440,172 @@ onMounted(() => {
         </Card>
       </div>
 
+      <!-- SECTION: Token Limit and Usage Executive Summary -->
+      <section class="space-y-3 pt-1">
+        <Card padding="p-5 sm:p-6" class="border-stone-200 shadow-xs relative overflow-hidden bg-gradient-to-r from-white via-white to-amber-50/40">
+          <div class="space-y-4">
+            <!-- Header Row: Title, Plan Pill, Actions -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 shadow-xs flex-shrink-0">
+                  <SvgIcon name="gauge" className="w-5 h-5" />
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <h2 class="text-sm sm:text-base font-black text-[#1c1917] tracking-tight">
+                      Ringkasan Kuota Token AI
+                    </h2>
+                    <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wider">
+                      {{ mockTokenQuota.planName }}
+                    </span>
+                    <span 
+                      :class="isNearTokenLimit ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'"
+                      class="text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase"
+                    >
+                      {{ isNearTokenLimit ? 'Mendekati Batas' : 'Normal' }}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-stone-500 mt-0.5">
+                    Kapasitas token LLM bulanan terpakai lintas seluruh asisten AI aktif di workspace.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Top CTA Buttons -->
+              <div class="flex items-center space-x-2 self-start sm:self-auto flex-shrink-0">
+                <router-link 
+                  to="/tokens"
+                  class="inline-flex items-center justify-center font-bold transition-all select-none rounded-xl text-xs px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-[#1c1917] border border-stone-200 cursor-pointer shadow-xs"
+                >
+                  <SvgIcon name="chart-bar" className="w-3.5 h-3.5 text-stone-600 mr-1.5" />
+                  <span>Lihat Detail & Analisis</span>
+                  <span class="ml-1 text-stone-400">&rarr;</span>
+                </router-link>
+
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  @click="showTopUpModal = true"
+                >
+                  <SvgIcon name="plus" className="w-3.5 h-3.5 text-[#1c1917] mr-1" />
+                  <span>Top Up</span>
+                </Button>
+              </div>
+            </div>
+
+            <!-- Numbers Strip & Compact Progress Bar -->
+            <div class="bg-stone-50/90 border border-stone-200/80 rounded-2xl p-4 space-y-3">
+              <!-- Big numbers row -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-baseline space-x-2.5">
+                  <span class="text-2xl sm:text-3xl font-black text-[#1c1917] tracking-tight">
+                    {{ formatNumber(mockTokenQuota.usedTokens) }}
+                  </span>
+                  <span class="text-xs sm:text-sm font-bold text-stone-400">
+                    / {{ formatNumber(mockTokenQuota.monthlyLimit) }} Token
+                  </span>
+                  <span 
+                    :class="isNearTokenLimit ? 'text-rose-600 bg-rose-50 border-rose-200' : 'text-amber-800 bg-amber-100 border-amber-300'"
+                    class="text-xs font-black px-2 py-0.5 rounded-lg border font-mono ml-1"
+                  >
+                    {{ tokenUsagePercent }}% Terpakai
+                  </span>
+                </div>
+
+                <!-- Quick KPI Badges -->
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <div class="bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-stone-600 shadow-2xs">
+                    <span class="text-[10px] text-stone-400 mr-1">Sisa:</span>
+                    <strong class="text-stone-900 font-mono">{{ formatCompactTokens(remainingTokens) }}</strong>
+                  </div>
+                  <div class="bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-stone-600 shadow-2xs">
+                    <span class="text-[10px] text-stone-400 mr-1">Est:</span>
+                    <strong class="text-stone-900 font-mono">~{{ Math.round(remainingTokens / mockTokenQuota.dailyAverage) }} Hari</strong>
+                  </div>
+                  <div class="bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-stone-600 shadow-2xs">
+                    <span class="text-[10px] text-stone-400 mr-1">Hard Stop:</span>
+                    <span :class="mockTokenQuota.hardStopEnabled ? 'text-emerald-700' : 'text-stone-400'" class="font-bold">
+                      {{ mockTokenQuota.hardStopEnabled ? '100% Aktif' : 'Nonaktif' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Multi-Segment Progress Gauge -->
+              <div class="space-y-1.5">
+                <div class="h-3 w-full bg-stone-200/80 rounded-full overflow-hidden p-0.5 flex border border-stone-200 relative">
+                  <!-- Prompt segment -->
+                  <div 
+                    :style="{ width: `${(mockTokenQuota.promptTokens / mockTokenQuota.monthlyLimit) * 100}%` }"
+                    class="h-full bg-amber-500 rounded-l-full transition-all duration-500"
+                    title="Prompt / Konteks RAG"
+                  ></div>
+                  <!-- Completion segment -->
+                  <div 
+                    :style="{ width: `${(mockTokenQuota.completionTokens / mockTokenQuota.monthlyLimit) * 100}%` }"
+                    class="h-full bg-stone-800 transition-all duration-500"
+                    title="Respon Generasi AI"
+                  ></div>
+                  <!-- RAG segment -->
+                  <div 
+                    :style="{ width: `${(mockTokenQuota.ragEmbeddingTokens / mockTokenQuota.monthlyLimit) * 100}%` }"
+                    class="h-full bg-amber-300 rounded-r-full transition-all duration-500"
+                    title="Vektor Embeddings RAG"
+                  ></div>
+                  <!-- 80% Threshold marker -->
+                  <div 
+                    :style="{ left: `${mockTokenQuota.alertThresholdPercent}%` }"
+                    class="absolute top-0 bottom-0 w-0.5 bg-rose-500 z-10"
+                    :title="`Batas Peringatan (${mockTokenQuota.alertThresholdPercent}%)`"
+                  ></div>
+                </div>
+
+                <!-- Legend & Deep link text -->
+                <div class="flex flex-wrap items-center justify-between text-[10px] text-stone-500 gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center space-x-1">
+                      <span class="w-2 h-2 rounded-xs bg-amber-500"></span>
+                      <span>Prompt ({{ formatCompactTokens(mockTokenQuota.promptTokens) }})</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                      <span class="w-2 h-2 rounded-xs bg-stone-800"></span>
+                      <span>Respon ({{ formatCompactTokens(mockTokenQuota.completionTokens) }})</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                      <span class="w-2 h-2 rounded-xs bg-amber-300"></span>
+                      <span>RAG ({{ formatCompactTokens(mockTokenQuota.ragEmbeddingTokens) }})</span>
+                    </div>
+                  </div>
+
+                  <div class="text-[10px] text-stone-400">
+                    Siklus: <span class="font-mono text-stone-600 font-semibold">{{ mockTokenQuota.billingPeriodStart }} - {{ mockTokenQuota.billingPeriodEnd }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer summary row with highest user & link to detail page -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-stone-500 pt-1 gap-2 border-t border-stone-100">
+              <div class="flex items-center space-x-2 text-[11px]">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span>
+                  Konsumsi tertinggi: <strong class="text-stone-900 font-semibold">Budi Santoso (Customer Care)</strong> 
+                  menggunakan <strong class="text-stone-900 font-mono">980.4K token (53.3%)</strong>
+                </span>
+              </div>
+
+              <router-link 
+                to="/tokens" 
+                class="text-[11px] font-black text-amber-800 hover:text-amber-950 flex items-center space-x-1 group"
+              >
+                <span>Kelola alokasi per-agen, grafik harian & batas di halaman detail</span>
+                <span class="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              </router-link>
+            </div>
+          </div>
+        </Card>
+      </section>
+
       <!-- Search & Filter Bar for Agents -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
         <div class="flex items-center space-x-2">
@@ -414,9 +686,16 @@ onMounted(() => {
           </div>
 
           <div class="mt-4 pt-4 border-t border-stone-100 flex items-center justify-between text-xs">
-            <div class="flex items-center space-x-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span class="text-stone-500 font-medium">Kotak Masuk: <strong class="text-stone-800">2 aktif</strong></span>
+            <div class="flex items-center space-x-3 text-[11px]">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="text-stone-500 font-medium">Kotak Masuk: <strong class="text-stone-800">2 aktif</strong></span>
+              </div>
+              <span class="text-stone-300">•</span>
+              <div class="flex items-center space-x-1 text-stone-500 font-medium">
+                <SvgIcon name="zap" className="w-3 h-3 text-amber-500" />
+                <span class="font-mono">{{ formatCompactTokens(mockTokenQuota.agentUsage[agent.id]?.tokensUsed || 0) }}</span>
+              </div>
             </div>
             <span class="text-stone-700 font-bold flex items-center space-x-1 group-hover:text-amber-700 group-hover:translate-x-1 transition-all">
               <span>Buka Dasbor</span>
@@ -626,6 +905,27 @@ onMounted(() => {
                 </div>
               </Card>
 
+              <!-- Token Quota Summary inside Subscription Settings -->
+              <Card padding="p-4" class="border-stone-200 bg-stone-50/50 space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-stone-700 flex items-center space-x-1.5">
+                    <SvgIcon name="gauge" className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Kuota Token Bulanan</span>
+                  </span>
+                  <span class="font-black text-[#1c1917] font-mono">{{ formatNumber(mockTokenQuota.usedTokens) }} / {{ formatNumber(mockTokenQuota.monthlyLimit) }}</span>
+                </div>
+                <div class="h-2 w-full bg-stone-200 rounded-full overflow-hidden">
+                  <div 
+                    :style="{ width: `${tokenUsagePercent}%` }"
+                    class="h-full bg-amber-500 rounded-full"
+                  ></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-stone-500">
+                  <span>{{ tokenUsagePercent }}% Terpakai</span>
+                  <span>Sisa: <strong class="text-stone-700">{{ formatCompactTokens(remainingTokens) }} Token</strong></span>
+                </div>
+              </Card>
+
               <!-- Package Tier Selector (Pro, Ultra, Max) -->
               <div class="space-y-2">
                 <label class="block text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Pilih Paket Langganan</label>
@@ -707,6 +1007,202 @@ onMounted(() => {
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- 1. Token Limits Configuration Modal -->
+    <div 
+      v-if="showTokenSettingsModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
+    >
+      <Card shadow="shadow-2xl" class="w-full max-w-lg space-y-6 relative max-h-[90vh] overflow-y-auto border-stone-200">
+        <button 
+          @click="showTokenSettingsModal = false"
+          class="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors text-xl font-bold cursor-pointer"
+        >
+          &times;
+        </button>
+
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 shadow-xs">
+            <SvgIcon name="sliders" className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="text-base font-black text-[#1c1917]">Konfigurasi Batas Kuota Token</h3>
+            <p class="text-stone-400 text-xs mt-0.5">Atur ambang batas peringatan, proteksi over-budget, dan limit per agen.</p>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <!-- Alert Threshold -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="block text-xs font-bold text-stone-700">Ambang Batas Peringatan (Soft Alert)</label>
+              <span class="text-xs font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-mono">{{ tempThreshold }}% Kuota</span>
+            </div>
+            <p class="text-[10.5px] text-stone-400 leading-relaxed">Sistem akan memunculkan banner peringatan saat konsumsi token mencapai persentase ini.</p>
+            <div class="grid grid-cols-3 gap-2.5 pt-1">
+              <button
+                v-for="thresh in [70, 80, 90]"
+                :key="thresh"
+                type="button"
+                @click="tempThreshold = thresh"
+                :class="tempThreshold === thresh ? 'bg-amber-100 border-amber-400 text-amber-900 font-extrabold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100 font-semibold'"
+                class="py-2.5 text-xs rounded-xl border transition-all cursor-pointer text-center"
+              >
+                {{ thresh }}%
+              </button>
+            </div>
+          </div>
+
+          <!-- Hard Stop Toggle -->
+          <div class="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex items-center justify-between gap-4">
+            <div class="space-y-0.5 pr-2">
+              <span class="text-xs font-bold text-stone-800 block">Proteksi Hard Stop (100% Kuota)</span>
+              <p class="text-[10.5px] text-stone-400 leading-relaxed">
+                Otomatis menghentikan respon AI jika kuota bulanan habis total untuk mencegah tagihan di luar kendali.
+              </p>
+            </div>
+            <ToggleSwitch v-model="tempHardStop" />
+          </div>
+
+          <!-- Daily Rate Limit per Agent -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-stone-700">Batas Kecepatan Harian (Daily Rate Limit)</label>
+            <p class="text-[10.5px] text-stone-400">Maksimum token yang dapat dikonsumsi oleh satu agen dalam kurun 24 jam.</p>
+            <div class="relative">
+              <input 
+                type="number" 
+                v-model.number="tempDailyRate"
+                step="5000"
+                class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-4 pr-32 py-2.5 text-xs text-[#1c1917] focus:outline-none focus:border-amber-500 font-mono font-bold"
+              />
+              <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-[10px] text-stone-400 pointer-events-none font-bold">
+                Token / Hari / Agen
+              </span>
+            </div>
+          </div>
+
+          <!-- Per-Agent Soft Caps -->
+          <div class="space-y-2.5 pt-2 border-t border-stone-100">
+            <label class="block text-xs font-bold text-stone-700">Alokasi Batas Maksimal Per Agen (Bulanan)</label>
+            <div class="space-y-2">
+              <div 
+                v-for="agentItem in mockAgents" 
+                :key="agentItem.id"
+                class="flex items-center justify-between gap-3 bg-stone-50/70 border border-stone-200 p-2.5 rounded-xl text-xs"
+              >
+                <div class="flex items-center space-x-2.5 min-w-0">
+                  <img :src="agentItem.avatar" class="w-6 h-6 rounded-full object-cover border border-stone-200" />
+                  <span class="font-bold text-stone-800 truncate">{{ agentItem.name }}</span>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <input 
+                    type="number" 
+                    v-model.number="tempAgentLimits[agentItem.id]" 
+                    step="50000"
+                    class="w-32 bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-right font-mono font-bold text-stone-800 focus:outline-none focus:border-amber-500"
+                  />
+                  <span class="text-[10px] text-stone-400 font-medium">Token</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Action Buttons -->
+          <div class="flex items-center justify-end space-x-2.5 pt-4 border-t border-stone-100">
+            <Button variant="secondary" size="md" @click="showTokenSettingsModal = false">
+              Batal
+            </Button>
+            <Button variant="primary" size="md" @click="saveTokenSettings">
+              Simpan Perubahan
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- 2. Top-Up Token Modal -->
+    <div 
+      v-if="showTopUpModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
+    >
+      <Card shadow="shadow-2xl" class="w-full max-w-md space-y-6 relative border-stone-200">
+        <button 
+          @click="showTopUpModal = false"
+          class="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors text-xl font-bold cursor-pointer"
+        >
+          &times;
+        </button>
+
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 shadow-xs">
+            <SvgIcon name="zap" className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="text-base font-black text-[#1c1917]">Beli Kuota Token Tambahan</h3>
+            <p class="text-stone-400 text-xs mt-0.5">Tambah kuota token instan tanpa perlu menaikkan tier langganan utama.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Top Up Packages Cards -->
+          <div class="space-y-2.5">
+            <div 
+              v-for="pkg in topUpPackages" 
+              :key="pkg.amount"
+              @click="selectedTopUpAmount = pkg.amount"
+              :class="selectedTopUpAmount === pkg.amount ? 'border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20 shadow-xs' : 'border-stone-200 bg-white hover:bg-stone-50/60'"
+              class="border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all relative"
+            >
+              <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm font-black text-[#1c1917]">{{ pkg.label }}</span>
+                  <span 
+                    v-if="pkg.badge"
+                    :class="pkg.popular ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-stone-100 text-stone-600 border-stone-200'"
+                    class="text-[9px] font-extrabold px-2 py-0.2 rounded-full border uppercase"
+                  >
+                    {{ pkg.badge }}
+                  </span>
+                </div>
+                <p class="text-[10.5px] text-stone-400">Aktif instan & berlaku sepanjang siklus berjalan.</p>
+              </div>
+
+              <div class="text-right">
+                <span class="text-sm font-black text-[#1c1917]">{{ pkg.price }}</span>
+                <span class="text-[9px] text-stone-400 block">Sekali bayar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex justify-between text-stone-500">
+              <span>Kuota saat ini:</span>
+              <strong class="text-stone-800 font-mono">{{ formatNumber(mockTokenQuota.monthlyLimit) }} Token</strong>
+            </div>
+            <div class="flex justify-between text-stone-500">
+              <span>Tambahan kuota baru:</span>
+              <strong class="text-amber-800 font-mono">+{{ formatNumber(selectedTopUpAmount) }} Token</strong>
+            </div>
+            <div class="flex justify-between text-stone-800 pt-1.5 border-t border-stone-200 font-bold">
+              <span>Total kuota setelah top-up:</span>
+              <span class="text-[#1c1917] font-black font-mono">{{ formatNumber(mockTokenQuota.monthlyLimit + selectedTopUpAmount) }} Token</span>
+            </div>
+          </div>
+
+          <!-- CTAs -->
+          <div class="flex items-center justify-end space-x-2.5 pt-2">
+            <Button variant="secondary" size="md" @click="showTopUpModal = false">
+              Batal
+            </Button>
+            <Button variant="primary" size="md" @click="applyTopUp">
+              <SvgIcon name="zap" className="w-4 h-4 mr-1 text-[#1c1917]" />
+              <span>Konfirmasi & Tambah Kuota</span>
+            </Button>
           </div>
         </div>
       </Card>

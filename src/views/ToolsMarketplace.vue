@@ -8,6 +8,7 @@ import {
   disconnectMarketplaceTool, 
   toggleAgentTool,
   mockAgentToolSettings,
+  mockTokenQuota,
   type MarketplaceTool 
 } from '../utils/mockData'
 import SvgIcon from '../components/ui/SvgIcon.vue'
@@ -95,6 +96,11 @@ const totalConnected = computed(() => {
 
 const totalPending = computed(() => {
   return mockMarketplaceTools.value.filter(t => t.connectionStatus === 'disconnected' || t.connectionStatus === 'error').length
+})
+
+const tokenUsagePercent = computed(() => {
+  if (!mockTokenQuota.value.monthlyLimit) return 0
+  return Math.min(100, Math.round((mockTokenQuota.value.usedTokens / mockTokenQuota.value.monthlyLimit) * 1000) / 10)
 })
 
 // Open connection setup modal
@@ -281,6 +287,15 @@ const getAgent = (agentId: string) => {
               <span>Marketplace Alat</span>
               <span class="bg-[#1c1917] text-[#f59e0b] text-[9px] px-1.5 py-0.2 rounded-full font-black ml-1">{{ mockMarketplaceTools.length }}</span>
             </router-link>
+
+            <router-link 
+              to="/tokens" 
+              class="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 hover:text-[#1c1917] hover:bg-stone-100 transition-all flex items-center space-x-2"
+            >
+              <SvgIcon name="gauge" className="w-4 h-4 text-stone-400" />
+              <span>Penggunaan Token</span>
+              <span class="bg-stone-200 text-stone-700 text-[9px] px-1.5 py-0.2 rounded-full font-bold ml-1">{{ tokenUsagePercent }}%</span>
+            </router-link>
           </nav>
         </div>
 
@@ -318,6 +333,14 @@ const getAgent = (agentId: string) => {
               >
                 <SvgIcon name="bot" className="w-3.5 h-3.5 text-stone-400" />
                 <span>Konsol Agen</span>
+              </router-link>
+              <router-link 
+                to="/tokens" 
+                class="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 font-bold flex items-center space-x-2"
+                @click="showUserDropdown = false"
+              >
+                <SvgIcon name="gauge" className="w-3.5 h-3.5 text-stone-400" />
+                <span>Penggunaan Token</span>
               </router-link>
               <button 
                 @click="router.push('/login')"

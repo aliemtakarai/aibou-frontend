@@ -50,6 +50,15 @@ const routes = [
     redirect: '/tools'
   },
   {
+    path: '/tokens',
+    name: 'TokenUsageDetail',
+    component: () => import('../views/TokenUsageDetail.vue')
+  },
+  {
+    path: '/usage',
+    redirect: '/tokens'
+  },
+  {
     path: '/agent/:id',
     component: AgentDashboardLayout,
     props: true,
