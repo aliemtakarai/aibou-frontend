@@ -27,7 +27,10 @@ This document provides foundational rules, architectural conventions, and develo
 2. **Terminal Execution Constraints**:
    - **Do NOT execute build or background commands without explicit user instruction.**
    - Preserve existing project files and user changes at all times.
-3. **Language Conventions**:
+3. **Environment & Secrets Handling**:
+   - **Do NOT read, open, or inspect `.env` or any dotenv files.** Never access, display, or expose secret keys and local environment values.
+   - Refer solely to `.env.example` for environment variable templates and configuration keys. When defining or modifying environment variables, only add or update `.env.example` with placeholder values.
+4. **Language Conventions**:
    - **UI & Copy**: Indonesian (`Bahasa Indonesia`) is the standard user-facing language for text, placeholders, labels, toasts, and modal descriptions.
    - **Code & Comments**: English for variables, interfaces, functions, commit messages, and technical documentation.
 
@@ -151,3 +154,4 @@ Before completing any task:
 4. Clean up timers and event listeners in `onUnmounted` or via `onWatcherCleanup`.
 5. Check that router navigation links work as expected.
 6. Adhere strictly to the workspace skills in `.agents/skills/vue-best-practices/`.
+7. Never read or inspect `.env` files; refer only to `.env.example` when working with environment variables.
