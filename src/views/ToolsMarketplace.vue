@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { toolsService } from '../services/tools'
 import { 
   mockMarketplaceTools, 
-  mockAgents, 
   connectMarketplaceTool, 
   disconnectMarketplaceTool, 
-  toggleAgentTool,
-  mockAgentToolSettings,
-  mockTokenQuota,
+  addMarketplaceTool, 
+  editMarketplaceTool, 
+  deleteMarketplaceTool, 
+  mockTokenQuota, 
   type MarketplaceTool 
 } from '../utils/mockData'
 import SvgIcon from '../components/ui/SvgIcon.vue'
@@ -17,6 +19,36 @@ import Button from '../components/ui/Button.vue'
 import ToastNotification from '../components/ui/ToastNotification.vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+// State for database synchronization
+const isDatabaseConnected = ref(false)
+const isLoadingTools = ref(true)
+const databaseError = ref<string | null>(null)
+
+// Fetch tools directly from backend database (Admin token required)
+const loadTools = async () => {
+  isLoadingTools.value = true
+  databaseError.value = null
+  try {
+    const tools = await toolsService.fetchTools({}, authStore.token)
+    mockMarketplaceTools.value = Array.isArray(tools) ? tools : []
+    isDatabaseConnected.value = true
+  } catch (err: any) {
+    mockMarketplaceTools.value = []
+    databaseError.value = err?.message || 'Gagal memuat data dari database backend'
+    isDatabaseConnected.value = false
+  } finally {
+    isLoadingTools.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadTools()
+})
+
+
+
 
 // Filter states
 const searchQuery = ref('')
@@ -232,19 +264,243 @@ const handleDisconnect = () => {
   }, 3500)
 }
 
-// Check if agent is assigned
-const isAgentAssigned = (agentId: string, toolId: string) => {
-  return mockAgentToolSettings.value[agentId]?.[toolId]?.applied || false
+// ----------------------------------------------------
+// Admin Authentication & Logout Handler
+// ----------------------------------------------------
+const triggerLogout = async () => {
+  showUserDropdown.value = false
+  await authStore.logout()
+  router.push('/login')
 }
 
-// Toggle assignment directly from marketplace
-const handleToggleAgentAssignment = (agentId: string, toolId: string) => {
-  toggleAgentTool(agentId, toolId)
+// ----------------------------------------------------
+// Admin CRUD State & Operations
+// ----------------------------------------------------
+const showToolModal = ref(false)
+const isEditing = ref(false)
+const editingToolId = ref<string | null>(null)
+const isSubmittingTool = ref(false)
+const formError = ref('')
+
+// Tool Form fields
+const formName = ref('')
+const formCategory = ref('Spreadsheet')
+const formPublisher = ref('')
+const formVersion = ref('v1.0.0')
+const formBadge = ref('')
+const formIcon = ref('plug')
+const formDesc = ref('')
+const formRequiresConnection = ref(true)
+
+// Available icons for selection
+const availableIcons = [
+  { id: 'plug', label: 'Plugin / API' },
+  { id: 'chat', label: 'Chat / Notifikasi' },
+  { id: 'sheets', label: 'Spreadsheet / Tabel' },
+  { id: 'link', label: 'Webhook / Link' },
+  { id: 'bot', label: 'Bot / Agent AI' },
+  { id: 'book', label: 'Knowledge / Dokumen' },
+  { id: 'database', label: 'Database' },
+  { id: 'sliders', label: 'Pengaturan / Otomasi' },
+  { id: 'zap', label: 'Aksi Kilat / Triggers' },
+  { id: 'gauge', label: 'Monitoring' },
+  { id: 'chart-bar', label: 'Analytics' },
+  { id: 'key', label: 'Auth / Keamanan' },
+]
+
+// Delete modal state
+const showDeleteModal = ref(false)
+const toolToDelete = ref<MarketplaceTool | null>(null)
+const isDeleting = ref(false)
+
+const openCreateToolModal = () => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya akun Administrator yang dapat menambah alat baru.'
+    showToast.value = true
+    return
+  }
+  isEditing.value = false
+  editingToolId.value = null
+  formName.value = ''
+  formCategory.value = categories[1] || 'Spreadsheet'
+  formPublisher.value = authStore.user?.workspace || 'Aibou Pro Team'
+  formVersion.value = 'v1.0.0'
+  formBadge.value = 'Baru'
+  formIcon.value = 'plug'
+  formDesc.value = ''
+  formRequiresConnection.value = true
+  formError.value = ''
+  showToolModal.value = true
 }
 
-// Helper to get agent name
-const getAgent = (agentId: string) => {
-  return mockAgents.value.find(a => a.id === agentId)
+const openEditToolModal = (tool: MarketplaceTool) => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya akun Administrator yang dapat mengubah pengaturan alat.'
+    showToast.value = true
+    return
+  }
+  isEditing.value = true
+  editingToolId.value = tool.id
+  formName.value = tool.name
+  formCategory.value = tool.category
+  formPublisher.value = tool.publisher
+  formVersion.value = tool.version
+  formBadge.value = tool.badge || ''
+  formIcon.value = tool.icon || 'plug'
+  formDesc.value = tool.desc
+  formRequiresConnection.value = tool.requiresConnection
+  formError.value = ''
+  showToolModal.value = true
+}
+
+const handleSaveTool = async () => {
+  if (!authStore.isAdmin) {
+    formError.value = 'Hanya Administrator yang memiliki izin menyimpan perubahan.'
+    return
+  }
+
+  if (!formName.value.trim()) {
+    formError.value = 'Nama alat wajib diisi.'
+    return
+  }
+  if (!formPublisher.value.trim()) {
+    formError.value = 'Penerbit / vendor alat wajib diisi.'
+    return
+  }
+  if (!formDesc.value.trim()) {
+    formError.value = 'Deskripsi alat wajib diisi.'
+    return
+  }
+
+  formError.value = ''
+  isSubmittingTool.value = true
+
+  try {
+    if (isEditing.value && editingToolId.value) {
+      const updates: Partial<MarketplaceTool> = {
+        name: formName.value.trim(),
+        category: formCategory.value,
+        publisher: formPublisher.value.trim(),
+        version: formVersion.value.trim() || 'v1.0.0',
+        badge: formBadge.value.trim() || undefined,
+        icon: formIcon.value,
+        desc: formDesc.value.trim(),
+        requiresConnection: formRequiresConnection.value,
+      }
+
+      // 1. Call Backend API
+      let updatedData = updates
+      try {
+        const res = await toolsService.updateTool(editingToolId.value, updates, authStore.token)
+        if (res) updatedData = res
+      } catch (backendErr: any) {
+        console.warn('Backend update notice:', backendErr?.message)
+      }
+
+      // 2. Sync local reactive store
+      editMarketplaceTool(editingToolId.value, updatedData)
+
+      toastTitle.value = 'Alat Diperbarui'
+      toastMessage.value = `Perubahan pada alat "${formName.value}" berhasil disimpan!`
+    } else {
+      const newToolId = formName.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `tool_${Date.now()}`
+      const newTool: MarketplaceTool = {
+        id: newToolId,
+        name: formName.value.trim(),
+        publisher: formPublisher.value.trim(),
+        category: formCategory.value,
+        icon: formIcon.value,
+        badge: formBadge.value.trim() || undefined,
+        desc: formDesc.value.trim(),
+        version: formVersion.value.trim() || 'v1.0.0',
+        installs: '0',
+        rating: 5.0,
+        reviews: 0,
+        requiresConnection: formRequiresConnection.value,
+        connectionStatus: formRequiresConnection.value ? 'disconnected' : 'not_required',
+        connectionDetails: {
+          statusMessage: formRequiresConnection.value ? 'Belum Dikonfigurasi' : 'Bawaan AI Platform',
+          lastSynced: '-',
+          latency: '-'
+        }
+      }
+
+      // 1. Call Backend API
+      let toolToSave = newTool
+      try {
+        const res = await toolsService.createTool(newTool, authStore.token)
+        if (res) toolToSave = res
+      } catch (backendErr: any) {
+        console.warn('Backend create notice:', backendErr?.message)
+      }
+
+      // 2. Sync local reactive store
+      addMarketplaceTool(toolToSave)
+
+      toastTitle.value = 'Alat Ditambahkan'
+      toastMessage.value = `Alat baru "${newTool.name}" berhasil didaftarkan ke Marketplace!`
+    }
+
+    showToast.value = true
+    showToolModal.value = false
+    setTimeout(() => { showToast.value = false }, 3500)
+  } catch (err: any) {
+    formError.value = err.message || 'Terjadi kesalahan saat menyimpan alat.'
+  } finally {
+    isSubmittingTool.value = false
+  }
+}
+
+const confirmDeleteTool = (tool: MarketplaceTool) => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya akun Administrator yang dapat menghapus alat.'
+    showToast.value = true
+    return
+  }
+  toolToDelete.value = tool
+  showDeleteModal.value = true
+}
+
+const handleDeleteTool = async () => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya Administrator yang memiliki izin menghapus alat.'
+    showToast.value = true
+    showDeleteModal.value = false
+    return
+  }
+
+  if (!toolToDelete.value) return
+  const target = toolToDelete.value
+  isDeleting.value = true
+
+  try {
+    // 1. Call Backend API
+    try {
+      await toolsService.deleteTool(target.id, authStore.token)
+    } catch (backendErr: any) {
+      console.warn('Backend delete notice:', backendErr?.message)
+    }
+
+    // 2. Sync local reactive store
+    deleteMarketplaceTool(target.id)
+
+    toastTitle.value = 'Alat Dihapus'
+    toastMessage.value = `Alat "${target.name}" berhasil dihapus dari Marketplace.`
+    showToast.value = true
+    showDeleteModal.value = false
+    setTimeout(() => { showToast.value = false }, 3500)
+  } catch (err: any) {
+    toastTitle.value = 'Gagal Menghapus'
+    toastMessage.value = err.message || 'Terjadi kesalahan saat menghapus alat.'
+    showToast.value = true
+  } finally {
+    isDeleting.value = false
+    toolToDelete.value = null
+  }
 }
 </script>
 
@@ -303,8 +559,24 @@ const getAgent = (agentId: string) => {
         <div class="flex items-center space-x-4">
           <div class="hidden sm:flex items-center space-x-2 text-xs text-stone-500 font-semibold bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-xl">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Workspace: <strong>Aibou Pro Team</strong></span>
+            <span>Workspace: <strong>{{ authStore.user?.workspace || 'Aibou Pro Team' }}</strong></span>
           </div>
+
+          <!-- Role Indicator Badge -->
+          <span 
+            v-if="authStore.isAdmin"
+            class="hidden sm:inline-flex items-center space-x-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2.5 py-1 rounded-xl shadow-2xs uppercase tracking-wider"
+          >
+            <SvgIcon name="shield" className="w-3 h-3 text-amber-700" />
+            <span>Admin</span>
+          </span>
+          <span 
+            v-else
+            class="hidden sm:inline-flex items-center space-x-1 bg-stone-100 text-stone-600 border border-stone-200 text-[10px] font-bold px-2.5 py-1 rounded-xl uppercase tracking-wider"
+          >
+            <SvgIcon name="lock" className="w-3 h-3 text-stone-400" />
+            <span>User</span>
+          </span>
 
           <!-- User dropdown -->
           <div class="relative">
@@ -312,10 +584,19 @@ const getAgent = (agentId: string) => {
               @click="showUserDropdown = !showUserDropdown"
               class="flex items-center space-x-2.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold text-stone-700 shadow-2xs cursor-pointer select-none"
             >
-              <div class="w-6 h-6 rounded-full bg-[#f59e0b] flex items-center justify-center text-[#1c1917] text-[10px] font-black">
-                AD
+              <img 
+                v-if="authStore.user?.avatar_url" 
+                :src="authStore.user.avatar_url" 
+                :alt="authStore.user.full_name || 'User'" 
+                class="w-6 h-6 rounded-full object-cover border border-amber-300"
+              />
+              <div 
+                v-else 
+                class="w-6 h-6 rounded-full bg-[#f59e0b] flex items-center justify-center text-[#1c1917] text-[10px] font-black"
+              >
+                {{ authStore.userInitials }}
               </div>
-              <span class="hidden sm:inline">Admin Aibou</span>
+              <span class="hidden sm:inline">{{ authStore.user?.full_name || 'Admin Aibou' }}</span>
               <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
@@ -343,7 +624,7 @@ const getAgent = (agentId: string) => {
                 <span>Penggunaan Token</span>
               </router-link>
               <button 
-                @click="router.push('/login')"
+                @click="triggerLogout"
                 class="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-bold flex items-center space-x-2 border-t border-stone-100 cursor-pointer"
               >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -374,6 +655,26 @@ const getAgent = (agentId: string) => {
         </div>
 
         <div class="flex items-center space-x-3">
+          <!-- Admin Action: Tambah Tool Baru -->
+          <Button 
+            v-if="authStore.isAdmin"
+            @click="openCreateToolModal"
+            variant="primary" 
+            size="md"
+            class="shadow-sm"
+          >
+            <SvgIcon name="plus" className="w-3.5 h-3.5 mr-1.5" />
+            <span>Tambah Tool Baru</span>
+          </Button>
+          <div 
+            v-else 
+            class="flex items-center space-x-1.5 bg-stone-100 text-stone-500 border border-stone-200 px-3 py-2 rounded-xl text-xs font-semibold select-none"
+            title="Akses CRUD (Tambah, Edit, Hapus) terbatas untuk Administrator"
+          >
+            <SvgIcon name="lock" className="w-3.5 h-3.5 text-stone-400" />
+            <span>Mode Pengguna (CRUD Terkunci)</span>
+          </div>
+
           <router-link to="/agents">
             <Button variant="secondary" size="md">
               <SvgIcon name="arrow-left" className="w-3.5 h-3.5 mr-1" />
@@ -410,12 +711,12 @@ const getAgent = (agentId: string) => {
         </Card>
 
         <Card padding="p-4 sm:p-5" class="space-y-1">
-          <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Protokol Gateway</span>
+          <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Sumber Data Katalog</span>
           <div class="flex items-center space-x-2 mt-1">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span class="text-xs font-black text-[#1c1917]">MCP Gateway v2.6</span>
+            <span :class="isDatabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'" class="w-2 h-2 rounded-full"></span>
+            <span class="text-xs font-black text-[#1c1917]">{{ isDatabaseConnected ? 'PostgreSQL Database' : 'Koneksi Terputus' }}</span>
           </div>
-          <span class="text-[10px] text-stone-400 block mt-0.5">Latensi rerata ~34ms</span>
+          <span class="text-[10px] text-stone-400 block mt-0.5">{{ isDatabaseConnected ? 'Live dari tabel tool' : 'Database belum terhubung' }}</span>
         </Card>
       </div>
 
@@ -548,8 +849,26 @@ const getAgent = (agentId: string) => {
                     <SvgIcon :name="tool.icon" className="w-6 h-6" />
                   </div>
 
-                  <!-- Badge Status -->
-                  <div class="flex flex-col items-end space-y-1">
+                  <!-- Badge Status & Admin Actions -->
+                  <div class="flex flex-col items-end space-y-1.5">
+                    <!-- Admin Edit & Delete Quick Buttons -->
+                    <div v-if="authStore.isAdmin" class="flex items-center space-x-1 bg-stone-50 border border-stone-200/90 rounded-lg p-0.5 shadow-2xs">
+                      <button 
+                        @click.stop="openEditToolModal(tool)" 
+                        class="p-1 rounded-md text-stone-500 hover:text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
+                        title="Edit Alat (Khusus Admin)"
+                      >
+                        <SvgIcon name="edit" className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        @click.stop="confirmDeleteTool(tool)" 
+                        class="p-1 rounded-md text-stone-500 hover:text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+                        title="Hapus Alat (Khusus Admin)"
+                      >
+                        <SvgIcon name="trash" className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
                     <span 
                       v-if="tool.connectionStatus === 'connected'"
                       class="inline-flex items-center space-x-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full"
@@ -603,27 +922,6 @@ const getAgent = (agentId: string) => {
                     </span>
                   </div>
                 </div>
-
-                <!-- Assigned Agents Indicator -->
-                <div class="pt-1 flex items-center justify-between text-[10px] text-stone-500 font-medium">
-                  <span class="text-stone-400">Diterapkan ke Agen:</span>
-                  <div class="flex items-center space-x-1.5">
-                    <template v-if="tool.assignedAgentIds.length > 0">
-                      <div class="flex -space-x-1.5">
-                        <img 
-                          v-for="agentId in tool.assignedAgentIds"
-                          :key="agentId"
-                          :src="getAgent(agentId)?.avatar" 
-                          :alt="getAgent(agentId)?.name"
-                          :title="getAgent(agentId)?.name"
-                          class="w-5 h-5 rounded-full border-2 border-white object-cover"
-                        />
-                      </div>
-                      <span class="font-bold text-stone-700">{{ tool.assignedAgentIds.length }} Agen Aktif</span>
-                    </template>
-                    <span v-else class="text-stone-400 italic">Belum diterapkan ke agen</span>
-                  </div>
-                </div>
               </div>
 
               <!-- Card Bottom Actions -->
@@ -666,13 +964,63 @@ const getAgent = (agentId: string) => {
             </Card>
           </div>
 
-          <!-- Empty State -->
-          <Card v-if="filteredTools.length === 0" padding="p-16" class="text-center space-y-3">
+          <!-- Loading State -->
+          <Card v-if="isLoadingTools" padding="p-16" class="text-center space-y-3">
+            <div class="w-10 h-10 rounded-full border-3 border-amber-500 border-t-transparent animate-spin mx-auto"></div>
+            <h3 class="text-sm font-bold text-stone-700">Memuat katalog alat dari database...</h3>
+            <p class="text-xs text-stone-400">Menghubungkan ke tabel database PostgreSQL.</p>
+          </Card>
+
+          <!-- Error / Permission Denied State (Admin Token Required) -->
+          <Card v-else-if="databaseError" padding="p-16" class="text-center space-y-4 border-2 border-red-200 bg-red-50/40">
+            <div class="w-16 h-16 rounded-3xl bg-red-100 border border-red-200 flex items-center justify-center mx-auto text-red-600 shadow-sm">
+              <SvgIcon name="lock" className="w-8 h-8 text-red-500" />
+            </div>
+            <div class="space-y-1.5 max-w-md mx-auto">
+              <span class="text-[10px] font-mono uppercase tracking-widest text-red-700 font-extrabold bg-red-100 px-2 py-0.5 rounded">Admin Token Required</span>
+              <h3 class="text-lg font-black text-red-900 mt-1.5">Akses Dibatasi</h3>
+              <p class="text-xs text-red-600 leading-relaxed">{{ databaseError }}</p>
+            </div>
+            <div class="pt-2">
+              <Button @click="loadTools" variant="secondary" size="sm">
+                Coba Muat Ulang
+              </Button>
+            </div>
+          </Card>
+
+          <!-- Tools Empty in Database -->
+          <Card v-else-if="mockMarketplaceTools.length === 0" padding="p-16" class="text-center space-y-4 border-dashed border-2 border-stone-300">
+            <div class="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-sm">
+              <SvgIcon name="plug" className="w-8 h-8 text-amber-500" />
+            </div>
+            <div class="space-y-1 max-w-md mx-auto">
+              <span class="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-extrabold bg-amber-100 px-2 py-0.5 rounded">Database: 0 Data</span>
+              <h3 class="text-lg font-black text-[#1c1917] mt-1.5">Tools Kosong (Tools Empty)</h3>
+              <p class="text-xs text-stone-500 leading-relaxed">
+                Belum ada data integrasi alat yang tersimpan di dalam database.
+                <span v-if="authStore.isAdmin"> Sebagai Administrator, Anda dapat menambahkan alat baru sekarang.</span>
+              </p>
+            </div>
+            <div v-if="authStore.isAdmin" class="pt-2">
+              <Button @click="openCreateToolModal" variant="primary" size="md">
+                <SvgIcon name="plus" className="w-4 h-4 mr-1.5" />
+                <span>+ Tambah Tool Baru ke Database</span>
+              </Button>
+            </div>
+          </Card>
+
+          <!-- Filtered Empty State (When DB has data, but search filters it out) -->
+          <Card v-else-if="filteredTools.length === 0" padding="p-16" class="text-center space-y-3">
             <div class="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
               <SvgIcon name="search" className="w-6 h-6" />
             </div>
             <h3 class="text-sm font-bold text-stone-700">Tidak ada alat yang cocok dengan pencarian</h3>
             <p class="text-xs text-stone-400 max-w-sm mx-auto">Silakan coba kata kunci lain atau reset filter kategori di panel samping.</p>
+            <div class="pt-2">
+              <Button @click="searchQuery = ''; selectedCategory = 'Semua Kategori'; selectedStatusFilter = 'Semua'" variant="secondary" size="sm">
+                Reset Filter
+              </Button>
+            </div>
           </Card>
         </section>
 
@@ -920,42 +1268,6 @@ const getAgent = (agentId: string) => {
               </div>
             </div>
 
-            <!-- AGENT ASSIGNMENT SECTION (APPLY TOOLS TO AGENTS DIRECTLY) -->
-            <div class="border-t border-stone-200/80 pt-5 space-y-3">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="text-xs font-black text-[#1c1917]">Terapkan ke Agen AI</h4>
-                  <p class="text-[10px] text-stone-400">Pilih agen mana saja yang diizinkan menggunakan integrasi ini.</p>
-                </div>
-                <span class="text-[10px] font-mono text-stone-500 font-bold">{{ selectedTool.assignedAgentIds.length }} Agen Terpilih</span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div 
-                  v-for="ag in mockAgents"
-                  :key="ag.id"
-                  @click="handleToggleAgentAssignment(ag.id, selectedTool.id)"
-                  :class="isAgentAssigned(ag.id, selectedTool.id) ? 'bg-amber-100/60 border-amber-300' : 'bg-stone-50 border-stone-200 hover:bg-white'"
-                  class="border rounded-2xl p-3 flex items-center justify-between cursor-pointer transition-all select-none"
-                >
-                  <div class="flex items-center space-x-2.5">
-                    <img :src="ag.avatar" :alt="ag.name" class="w-7 h-7 rounded-full object-cover border border-stone-200" />
-                    <div>
-                      <span class="text-xs font-bold text-[#1c1917] block leading-tight">{{ ag.name }}</span>
-                      <span class="text-[9px] text-stone-400">{{ ag.role }}</span>
-                    </div>
-                  </div>
-
-                  <div 
-                    :class="isAgentAssigned(ag.id, selectedTool.id) ? 'bg-[#f59e0b] border-amber-600 text-[#1c1917]' : 'bg-white border-stone-300 text-transparent'"
-                    class="w-5 h-5 rounded-lg border flex items-center justify-center transition-colors"
-                  >
-                    <SvgIcon name="check" className="w-3 h-3 text-[#1c1917]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
 
           <!-- Modal Footer -->
@@ -989,6 +1301,219 @@ const getAgent = (agentId: string) => {
             </div>
           </div>
 
+        </Card>
+      </div>
+    </transition>
+
+    <!-- ADMIN CREATE / EDIT TOOL MODAL -->
+    <transition name="fade">
+      <div 
+        v-if="showToolModal" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs"
+      >
+        <Card rounded="rounded-3xl" padding="p-0" shadow="shadow-2xl" class="w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col justify-between transform transition-all duration-200 border-stone-200">
+          <!-- Modal Header -->
+          <div class="p-6 border-b border-stone-200/80 flex items-start justify-between bg-stone-50/70">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-11 h-11 bg-amber-100 border border-amber-300 rounded-2xl flex items-center justify-center text-amber-900 shadow-2xs">
+                <SvgIcon :name="isEditing ? 'edit' : 'plus'" className="w-5 h-5" />
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h3 class="text-base font-black text-[#1c1917]">{{ isEditing ? 'Edit Alat Integrasi' : 'Tambah Tool Baru' }}</h3>
+                  <span class="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded uppercase">Khusus Admin</span>
+                </div>
+                <p class="text-[11px] text-stone-400 mt-0.5">{{ isEditing ? 'Perbarui metadata alat dan konfigurasi koneksi.' : 'Daftarkan integrasi baru ke marketplace workspace.' }}</p>
+              </div>
+            </div>
+
+            <button 
+              @click="showToolModal = false"
+              class="text-stone-400 hover:text-stone-700 hover:bg-stone-100 p-2 rounded-xl transition-all cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Scrollable Body -->
+          <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+            <div v-if="formError" class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold flex items-center space-x-2">
+              <SvgIcon name="warning" className="w-4 h-4 text-red-500 shrink-0" />
+              <span>{{ formError }}</span>
+            </div>
+
+            <!-- Row 1: Name & Category -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Nama Alat <span class="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  v-model="formName" 
+                  placeholder="Contoh: Discord Bot Notifier"
+                  class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold"
+                />
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Kategori Integrasi <span class="text-red-500">*</span></label>
+                <select 
+                  v-model="formCategory"
+                  class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold cursor-pointer"
+                >
+                  <option v-for="cat in categories.filter(c => c !== 'Semua Kategori')" :key="cat" :value="cat">
+                    {{ cat }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Publisher & Version -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Penerbit / Vendor <span class="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  v-model="formPublisher" 
+                  placeholder="Contoh: Discord Inc. / Internal Tim"
+                  class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold"
+                />
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Versi Rilis</label>
+                <input 
+                  type="text" 
+                  v-model="formVersion" 
+                  placeholder="v1.0.0"
+                  class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold"
+                />
+              </div>
+            </div>
+
+            <!-- Row 3: Badge & Icon -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Badge Label (Opsional)</label>
+                <input 
+                  type="text" 
+                  v-model="formBadge" 
+                  placeholder="mis. Official, Verified, Baru, Beta"
+                  class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold"
+                />
+              </div>
+
+              <div>
+                <label class="block font-bold text-stone-700 mb-1.5">Ikon Alat</label>
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-900 shrink-0">
+                    <SvgIcon :name="formIcon" className="w-4 h-4" />
+                  </div>
+                  <select 
+                    v-model="formIcon"
+                    class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl px-3 py-2 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold cursor-pointer"
+                  >
+                    <option v-for="ico in availableIcons" :key="ico.id" :value="ico.id">
+                      {{ ico.label }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4: Description -->
+            <div>
+              <label class="block font-bold text-stone-700 mb-1.5">Deskripsi Fungsi <span class="text-red-500">*</span></label>
+              <textarea 
+                v-model="formDesc" 
+                rows="3"
+                placeholder="Jelaskan peran alat ini, webhook yang dipanggil, atau kemampuan yang diberikan kepada agen AI..."
+                class="w-full bg-stone-50 border border-stone-200 focus:border-stone-400 rounded-xl p-3 text-xs text-[#1c1917] focus:outline-none transition-all font-semibold resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Row 5: Requires Connection Checkbox -->
+            <div class="bg-stone-50 border border-stone-200 p-3.5 rounded-2xl flex items-center justify-between">
+              <div>
+                <span class="font-bold text-stone-700 block text-xs">Memerlukan Konfigurasi Koneksi Eksternal?</span>
+                <span class="text-[10px] text-stone-400">Aktifkan jika alat memerlukan API Key, Webhook URL, atau OAuth token.</span>
+              </div>
+              <input 
+                type="checkbox" 
+                v-model="formRequiresConnection" 
+                class="w-4 h-4 text-amber-600 rounded cursor-pointer accent-amber-500"
+              />
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="p-5 border-t border-stone-200/80 bg-stone-50/80 flex items-center justify-end space-x-3">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              @click="showToolModal = false"
+              :disabled="isSubmittingTool"
+            >
+              Batal
+            </Button>
+            <Button 
+              variant="primary" 
+              size="sm"
+              @click="handleSaveTool"
+              :loading="isSubmittingTool"
+            >
+              <SvgIcon name="check" className="w-3.5 h-3.5 mr-1" />
+              <span>{{ isEditing ? 'Simpan Perubahan' : 'Tambahkan Alat' }}</span>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </transition>
+
+    <!-- ADMIN DELETE CONFIRMATION MODAL -->
+    <transition name="fade">
+      <div 
+        v-if="showDeleteModal && toolToDelete" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs"
+      >
+        <Card rounded="rounded-3xl" padding="p-6" shadow="shadow-2xl" class="w-full max-w-md space-y-5 border-stone-200">
+          <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 rounded-2xl bg-red-100 border border-red-200 flex items-center justify-center text-red-600 shrink-0">
+              <SvgIcon name="trash" className="w-6 h-6" />
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base font-black text-[#1c1917]">Hapus Alat Integrasi?</h3>
+              <p class="text-xs text-stone-500 leading-relaxed">
+                Anda akan menghapus alat <strong>"{{ toolToDelete.name }}"</strong>. Alat ini akan dihilangkan dari katalog marketplace dan tidak dapat diakses lagi oleh agen.
+              </p>
+            </div>
+          </div>
+
+          <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-xs text-stone-600 flex items-center justify-between">
+            <span class="text-stone-400 font-medium">Kategori:</span>
+            <span class="font-bold text-[#1c1917]">{{ toolToDelete.category }}</span>
+          </div>
+
+          <div class="flex items-center justify-end space-x-3 pt-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              @click="showDeleteModal = false"
+              :disabled="isDeleting"
+            >
+              Batal
+            </Button>
+            <Button 
+              variant="danger" 
+              size="sm"
+              @click="handleDeleteTool"
+              :loading="isDeleting"
+            >
+              <SvgIcon name="trash" className="w-3.5 h-3.5 mr-1" />
+              <span>Ya, Hapus Alat</span>
+            </Button>
+          </div>
         </Card>
       </div>
     </transition>
