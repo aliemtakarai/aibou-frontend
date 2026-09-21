@@ -1,30 +1,37 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import AlertBanner from '../components/ui/AlertBanner.vue'
 import Card from '../components/ui/Card.vue'
 import Button from '../components/ui/Button.vue'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
-const rememberMe = ref(false)
+const rememberMe = ref(true)
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const showSuccessMessage = ref(false)
 
 onMounted(() => {
+  // If already authenticated, redirect straight to agents console
+  if (authStore.isAuthenticated) {
+    router.replace('/agents')
+    return
+  }
+
   if (route.query.registered === 'true') {
     showSuccessMessage.value = true
-    // Clear the query parameter from the URL bar silently
     router.replace({ query: {} })
   }
 })
 
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!email.value.trim() || !password.value) {
     errorMessage.value = 'Silakan isi email dan kata sandi Anda.'
     return
@@ -40,11 +47,20 @@ const handleLogin = () => {
   isLoading.value = true
   errorMessage.value = ''
   
-  // Simulate network request
-  setTimeout(() => {
+  try {
+    await authStore.login({
+      email: email.value,
+      password: password.value,
+      rememberMe: rememberMe.value,
+    })
+
+    const redirectPath = (route.query.redirect as string) || '/agents'
+    router.push(redirectPath)
+  } catch (err: any) {
+    errorMessage.value = err.message || 'Gagal masuk. Silakan periksa kembali email dan kata sandi Anda.'
+  } finally {
     isLoading.value = false
-    router.push('/agents')
-  }, 1500)
+  }
 }
 </script>
 
@@ -55,7 +71,7 @@ const handleLogin = () => {
     <div class="absolute bottom-[-10%] right-[10%] w-[450px] h-[450px] bg-amber-600/5 rounded-full blur-[130px] pointer-events-none z-0"></div>
 
     <!-- Center Card Container -->
-    <Card glass rounded="rounded-3xl" padding="p-8 md:p-10" shadow="shadow-xl" class="w-full max-w-md space-y-7 z-10 border-stone-200">
+    <Card glass rounded="rounded-3xl" padding="p-8 md:p-10" shadow="shadow-xl" class="w-full max-w-md space-y-6 z-10 border-stone-200">
       
       <!-- Logo and App Name -->
       <div class="flex flex-col items-center text-center space-y-4">
@@ -81,7 +97,7 @@ const handleLogin = () => {
       />
 
       <!-- Main Login Form -->
-      <form @submit.prevent="handleLogin" class="space-y-5">
+      <form @submit.prevent="handleLogin" class="space-y-4">
         <!-- Email Input -->
         <div class="space-y-1.5">
           <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Alamat Email Bisnis</label>
@@ -164,7 +180,7 @@ const handleLogin = () => {
       </form>
 
       <!-- Divider -->
-      <div class="relative flex py-2 items-center">
+      <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-stone-200"></div>
         <span class="flex-shrink mx-4 text-[10px] text-stone-400 font-mono uppercase tracking-wider font-extrabold">Atau</span>
         <div class="flex-grow border-t border-stone-200"></div>

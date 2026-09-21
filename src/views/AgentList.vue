@@ -9,6 +9,7 @@ import {
   updateTokenLimits 
 } from '../utils/mockData'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import StatCard from '../components/ui/StatCard.vue'
 import ToastNotification from '../components/ui/ToastNotification.vue'
 import Card from '../components/ui/Card.vue'
@@ -18,6 +19,7 @@ import ToggleSwitch from '../components/ui/ToggleSwitch.vue'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const selectAgent = (id: string) => {
   router.push(`/agent/${id}/chat`) // direct to chat console by default
@@ -215,8 +217,9 @@ const openSettings = () => {
   showSettingsModal.value = true
 }
 
-const triggerLogout = () => {
+const triggerLogout = async () => {
   showUserDropdown.value = false
+  await authStore.logout()
   // Redirect to login page
   router.push('/login')
 }
@@ -315,7 +318,7 @@ onMounted(() => {
         <div class="flex items-center space-x-4">
           <div class="hidden sm:flex items-center space-x-2 text-xs text-stone-500 font-semibold bg-stone-50 border border-stone-200 px-3 py-1.5 rounded-xl">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Workspace: <strong>Aibou Pro Team</strong></span>
+            <span>Workspace: <strong>{{ authStore.user?.workspace || 'Aibou Pro Team' }}</strong></span>
           </div>
 
           <!-- User dropdown -->
@@ -324,10 +327,19 @@ onMounted(() => {
               @click="showUserDropdown = !showUserDropdown"
               class="flex items-center space-x-2.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold text-stone-700 shadow-2xs cursor-pointer select-none"
             >
-              <div class="w-6 h-6 rounded-full bg-[#f59e0b] flex items-center justify-center text-[#1c1917] text-[10px] font-black">
-                AD
+              <img 
+                v-if="authStore.user?.avatar_url" 
+                :src="authStore.user.avatar_url" 
+                :alt="authStore.user.full_name || 'User'" 
+                class="w-6 h-6 rounded-full object-cover border border-amber-300"
+              />
+              <div 
+                v-else 
+                class="w-6 h-6 rounded-full bg-[#f59e0b] flex items-center justify-center text-[#1c1917] text-[10px] font-black"
+              >
+                {{ authStore.userInitials }}
               </div>
-              <span class="hidden sm:inline">Admin Aibou</span>
+              <span class="hidden sm:inline">{{ authStore.user?.full_name || 'Admin Aibou' }}</span>
               <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
@@ -336,8 +348,15 @@ onMounted(() => {
             <!-- Dropdown Menu -->
             <div 
               v-if="showUserDropdown" 
-              class="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 z-40"
+              class="absolute right-0 mt-2 w-52 bg-white border border-stone-200 rounded-2xl shadow-xl py-2 z-40"
             >
+              <div class="px-4 py-2 border-b border-stone-100 mb-1">
+                <p class="text-xs font-black text-[#1c1917] truncate">{{ authStore.user?.full_name || 'Pengguna Aibou' }}</p>
+                <p class="text-[10px] text-stone-400 truncate">{{ authStore.user?.email || 'admin@aibou.ai' }}</p>
+                <span class="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/60">
+                  {{ authStore.user?.role || 'admin' }}
+                </span>
+              </div>
               <router-link 
                 to="/tools" 
                 class="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 font-bold flex items-center space-x-2"

@@ -102,4 +102,26 @@ const router = createRouter({
   linkActiveClass: 'active'
 })
 
+// Authentication navigation guard
+router.beforeEach((to, _from, next) => {
+  const publicPages = ['/login', '/register', '/onboarding']
+  const authRequired = !publicPages.includes(to.path)
+  const token = localStorage.getItem('aibou_token') || sessionStorage.getItem('aibou_token')
+
+  if (authRequired && !token) {
+    // If not authenticated, redirect to login with return redirect
+    return next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    })
+  }
+
+  if (token && (to.path === '/login' || to.path === '/register')) {
+    // If already authenticated and trying to access login/register, redirect to dashboard
+    return next('/agents')
+  }
+
+  next()
+})
+
 export default router
