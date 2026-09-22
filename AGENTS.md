@@ -24,7 +24,8 @@ This document provides foundational rules, architectural conventions, and develo
    - Run dev server: `bun run dev`
    - Build preview: `bun run preview`
    - Typecheck & build: `bun run build` (`vue-tsc -b && vite build`)
-2. **Terminal Execution Constraints**:
+2. **Terminal & Git Execution Constraints**:
+   - **DO NOT run or use ANY `git` commands under any circumstances** (`git status`, `git diff`, `git commit`, etc.).
    - **Do NOT execute build or background commands without explicit user instruction.**
    - Preserve existing project files and user changes at all times.
 3. **Environment & Secrets Handling**:
