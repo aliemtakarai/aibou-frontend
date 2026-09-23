@@ -8,6 +8,8 @@ import {
   topUpTokens,
   updateTokenLimits 
 } from '../utils/mockData'
+import type { Agent } from '../types/agent'
+import { agentsService } from '../services/agents'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import StatCard from '../components/ui/StatCard.vue'
@@ -20,6 +22,25 @@ import ToggleSwitch from '../components/ui/ToggleSwitch.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+// State for database synchronization
+const isLoadingAgents = ref(false)
+const agentsError = ref<string | null>(null)
+
+const loadAgents = async () => {
+  isLoadingAgents.value = true
+  agentsError.value = null
+  try {
+    const agents = await agentsService.fetchAgents({}, authStore.token)
+    mockAgents.value = Array.isArray(agents) ? agents : []
+  } catch (err: any) {
+    console.warn('Gagal memuat agen dari backend:', err?.message)
+    agentsError.value = err?.message || 'Gagal memuat agen'
+  } finally {
+    isLoadingAgents.value = false
+  }
+}
+
 
 const selectAgent = (id: string) => {
   router.push(`/agent/${id}/chat`) // direct to chat console by default
@@ -103,6 +124,7 @@ const openTokenSettings = () => {
 const saveTokenSettings = () => {
   updateTokenLimits(tempThreshold.value, tempHardStop.value, tempDailyRate.value, tempAgentLimits.value)
   showTokenSettingsModal.value = false
+  globalToastTitle.value = 'Pengaturan Disimpan'
   globalToastMessage.value = 'Pengaturan batas kuota token berhasil diperbarui!'
   showGlobalToast.value = true
   setTimeout(() => { showGlobalToast.value = false }, 3000)
@@ -119,33 +141,120 @@ const selectedTopUpAmount = ref(1000000)
 const applyTopUp = () => {
   topUpTokens(selectedTopUpAmount.value)
   showTopUpModal.value = false
+  globalToastTitle.value = 'Top Up Berhasil'
   globalToastMessage.value = `Berhasil menambah ${formatNumber(selectedTopUpAmount.value)} Token ke kuota workspace!`
   showGlobalToast.value = true
   setTimeout(() => { showGlobalToast.value = false }, 3500)
 }
 
-// Modal State
+// Create Modal State
 const showCreateModal = ref(false)
 const newAgentName = ref('')
 const newAgentRole = ref('')
 const newAgentAvatar = ref('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80')
+const newAgentTone = ref('Formal / Profesional')
+const isSubmittingCreate = ref(false)
 
-const createAgent = () => {
-  if (!newAgentName.value.trim() || !newAgentRole.value.trim()) return
+const createAgent = async () => {
+  if (!newAgentName.value.trim() || !newAgentRole.value.trim() || isSubmittingCreate.value) return
+  isSubmittingCreate.value = true
+  try {
+    const created = await agentsService.createAgent({
+      name: newAgentName.value.trim(),
+      role: newAgentRole.value.trim(),
+      avatar: newAgentAvatar.value.trim() || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80',
+      tone: newAgentTone.value,
+    }, authStore.token)
 
-  // Create new agent and push to mockAgents ref
-  const newId = `agent-${Date.now()}`
-  mockAgents.value.push({
-    id: newId,
-    name: newAgentName.value,
-    role: newAgentRole.value,
-    avatar: newAgentAvatar.value
-  })
+    mockAgents.value.push(created)
+    newAgentName.value = ''
+    newAgentRole.value = ''
+    newAgentTone.value = 'Formal / Profesional'
+    showCreateModal.value = false
+    globalToastTitle.value = 'Agen Terpasang'
+    globalToastMessage.value = `Agen "${created.name}" berhasil dipasang!`
+    showGlobalToast.value = true
+    setTimeout(() => { showGlobalToast.value = false }, 3500)
+  } catch (err: any) {
+    alert(err?.message || 'Gagal memasang agen baru.')
+  } finally {
+    isSubmittingCreate.value = false
+  }
+}
 
-  // Reset fields & close modal
-  newAgentName.value = ''
-  newAgentRole.value = ''
-  showCreateModal.value = false
+// Edit Modal State
+const showEditModal = ref(false)
+const editingAgentId = ref('')
+const editAgentName = ref('')
+const editAgentRole = ref('')
+const editAgentAvatar = ref('')
+const editAgentTone = ref('Formal / Profesional')
+const isSubmittingEdit = ref(false)
+
+const openEditModal = (agent: Agent) => {
+  editingAgentId.value = agent.id
+  editAgentName.value = agent.name
+  editAgentRole.value = agent.role
+  editAgentAvatar.value = agent.avatar
+  editAgentTone.value = agent.tone || 'Formal / Profesional'
+  showEditModal.value = true
+}
+
+const saveEditAgent = async () => {
+  if (!editAgentName.value.trim() || !editAgentRole.value.trim() || isSubmittingEdit.value) return
+  isSubmittingEdit.value = true
+  try {
+    const updated = await agentsService.updateAgent(editingAgentId.value, {
+      name: editAgentName.value.trim(),
+      role: editAgentRole.value.trim(),
+      avatar: editAgentAvatar.value.trim(),
+      tone: editAgentTone.value,
+    }, authStore.token)
+
+    const idx = mockAgents.value.findIndex(a => a.id === editingAgentId.value)
+    if (idx !== -1) {
+      mockAgents.value[idx] = { ...mockAgents.value[idx], ...updated }
+    }
+    showEditModal.value = false
+    globalToastTitle.value = 'Pengaturan Disimpan'
+    globalToastMessage.value = `Agen "${updated.name}" berhasil diperbarui!`
+    showGlobalToast.value = true
+    setTimeout(() => { showGlobalToast.value = false }, 3500)
+  } catch (err: any) {
+    alert(err?.message || 'Gagal memperbarui agen.')
+  } finally {
+    isSubmittingEdit.value = false
+  }
+}
+
+// Delete Modal State
+const showDeleteModal = ref(false)
+const agentToDelete = ref<Agent | null>(null)
+const isSubmittingDelete = ref(false)
+
+const openDeleteModal = (agent: Agent) => {
+  agentToDelete.value = agent
+  showDeleteModal.value = true
+}
+
+const confirmDeleteAgent = async () => {
+  if (!agentToDelete.value || isSubmittingDelete.value) return
+  const target = agentToDelete.value
+  isSubmittingDelete.value = true
+  try {
+    await agentsService.deleteAgent(target.id, authStore.token)
+    mockAgents.value = mockAgents.value.filter(a => a.id !== target.id)
+    showDeleteModal.value = false
+    agentToDelete.value = null
+    globalToastTitle.value = 'Agen Dihapus'
+    globalToastMessage.value = `Agen "${target.name}" berhasil dihapus.`
+    showGlobalToast.value = true
+    setTimeout(() => { showGlobalToast.value = false }, 3500)
+  } catch (err: any) {
+    alert(err?.message || 'Gagal menghapus agen.')
+  } finally {
+    isSubmittingDelete.value = false
+  }
 }
 
 // Dropdown & Settings states
@@ -244,12 +353,16 @@ const updatePassword = () => {
 }
 
 const showGlobalToast = ref(false)
+const globalToastTitle = ref('Notifikasi')
 const globalToastMessage = ref('')
 
-onMounted(() => {
+onMounted(async () => {
+  await loadAgents()
+
   if (route.query.welcome === 'true') {
     const planName = (route.query.plan as string) || 'Ultra'
     selectedPlan.value = planName
+    globalToastTitle.value = 'Selamat Datang'
     globalToastMessage.value = `Paket Aibou ${planName} Anda telah aktif. Asisten Anda siap dikonfigurasi!`
     showGlobalToast.value = true
     
@@ -268,7 +381,7 @@ onMounted(() => {
     <!-- Global Toast Notification -->
     <ToastNotification 
       v-model:show="showGlobalToast"
-      title="Selamat Datang"
+      :title="globalToastTitle"
       :message="globalToastMessage"
       :duration="5000"
     />
@@ -646,7 +759,48 @@ onMounted(() => {
       </div>
 
       <!-- Agents Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-if="isLoadingAgents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card v-for="i in 3" :key="i" padding="p-6" class="animate-pulse min-h-[220px] flex flex-col justify-between">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-13 h-13 rounded-2xl bg-stone-200"></div>
+            <div class="space-y-2 flex-1">
+              <div class="h-4 bg-stone-200 rounded w-1/2"></div>
+              <div class="h-3 bg-stone-100 rounded w-3/4"></div>
+            </div>
+          </div>
+          <div class="h-10 bg-stone-100 rounded-xl mt-4"></div>
+          <div class="h-4 bg-stone-100 rounded w-1/3 mt-4"></div>
+        </Card>
+      </div>
+
+      <div v-else-if="filteredAgents.length === 0" class="col-span-full">
+        <Card padding="p-10" class="text-center flex flex-col items-center justify-center space-y-4 border-dashed border-2 border-stone-200">
+          <div class="w-16 h-16 rounded-2xl bg-amber-100/70 border border-amber-300 text-amber-800 flex items-center justify-center text-2xl font-bold shadow-xs">
+            <SvgIcon name="bot" className="w-8 h-8 text-amber-800" />
+          </div>
+          <div class="max-w-md space-y-1">
+            <h3 class="text-base font-extrabold text-[#1c1917]">
+              {{ searchQuery ? 'Tidak Ada Agen Ditemukan' : 'Belum Ada Agen AI Terpasang' }}
+            </h3>
+            <p class="text-xs text-stone-500 leading-relaxed">
+              {{ searchQuery 
+                ? `Tidak ada agen yang cocok dengan kata kunci "${searchQuery}". Coba kata kunci lain.` 
+                : 'Akun Anda saat ini belum memiliki asisten AI aktif. Mulai dengan memasang agen AI pertama Anda.' }}
+            </p>
+          </div>
+          <Button 
+            v-if="!searchQuery"
+            variant="primary" 
+            size="md"
+            @click="showCreateModal = true"
+          >
+            <span class="mr-1.5 font-bold leading-none">+</span>
+            <span>Pasang Agen Pertama</span>
+          </Button>
+        </Card>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card 
           v-for="agent in filteredAgents" 
           :key="agent.id"
@@ -654,15 +808,15 @@ onMounted(() => {
           hoverable
           clickable
           padding="p-6"
-          class="group min-h-[220px] flex flex-col justify-between border-stone-200 transition-all duration-200"
+          class="group min-h-[220px] flex flex-col justify-between border-stone-200 transition-all duration-200 relative"
         >
           <!-- Soft warm hover accent glow -->
-          <div class="absolute -right-16 -top-16 w-32 h-32 bg-[#f59e0b]/5 rounded-full blur-2xl group-hover:bg-[#f59e0b]/10 transition-all duration-300"></div>
+          <div class="absolute -right-16 -top-16 w-32 h-32 bg-[#f59e0b]/5 rounded-full blur-2xl group-hover:bg-[#f59e0b]/10 transition-all duration-300 pointer-events-none"></div>
 
           <div class="space-y-4">
             <div class="flex items-start justify-between">
-              <div class="flex items-center space-x-3.5">
-                <div class="relative">
+              <div class="flex items-center space-x-3.5 min-w-0 pr-2">
+                <div class="relative flex-shrink-0">
                   <img 
                     :src="agent.avatar" 
                     :alt="agent.name" 
@@ -670,17 +824,34 @@ onMounted(() => {
                   />
                   <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
-                <div>
-                  <h2 class="text-base font-extrabold text-[#1c1917] group-hover:text-amber-700 transition-colors leading-tight">
+                <div class="min-w-0">
+                  <h2 class="text-base font-extrabold text-[#1c1917] group-hover:text-amber-700 transition-colors leading-tight truncate">
                     {{ agent.name }}
                   </h2>
                   <p class="text-stone-400 text-xs font-semibold mt-0.5 leading-snug line-clamp-1">{{ agent.role }}</p>
                 </div>
               </div>
 
-              <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9.5px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Aktif
-              </span>
+              <!-- Top Right Actions: Edit, Delete, and Active Pill -->
+              <div class="flex items-center space-x-1 flex-shrink-0" @click.stop>
+                <button 
+                  @click="openEditModal(agent)"
+                  title="Ubah Agen"
+                  class="p-1.5 rounded-lg text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition-colors cursor-pointer"
+                >
+                  <SvgIcon name="edit" className="w-3.5 h-3.5" />
+                </button>
+                <button 
+                  @click="openDeleteModal(agent)"
+                  title="Hapus Agen"
+                  class="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                >
+                  <SvgIcon name="trash" className="w-3.5 h-3.5" />
+                </button>
+                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9.5px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ml-0.5">
+                  Aktif
+                </span>
+              </div>
             </div>
 
             <!-- Applied Tools Pills -->
@@ -753,8 +924,8 @@ onMounted(() => {
         </button>
 
         <div>
-          <h3 class="text-base font-bold text-[#1c1917]">Pasang Agen AI</h3>
-          <p class="text-stone-400 text-xs mt-1">Konfigurasikan nama dan peran khusus untuk asisten Anda.</p>
+          <h3 class="text-base font-bold text-[#1c1917]">Pasang Agen AI Baru</h3>
+          <p class="text-stone-400 text-xs mt-1">Konfigurasikan nama, peran, dan karakter asisten AI khusus Anda.</p>
         </div>
 
         <div class="space-y-4">
@@ -764,7 +935,7 @@ onMounted(() => {
               type="text" 
               v-model="newAgentName" 
               placeholder="contoh: Rian"
-              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors" 
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors font-semibold" 
             />
           </div>
 
@@ -774,8 +945,21 @@ onMounted(() => {
               type="text" 
               v-model="newAgentRole" 
               placeholder="contoh: Spesialis Penjualan & Kualifikasi Prospek"
-              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors" 
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors font-semibold" 
             />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider">Gaya Bicara (Tone)</label>
+            <select 
+              v-model="newAgentTone"
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none transition-colors font-semibold"
+            >
+              <option value="Formal / Profesional">Formal / Profesional</option>
+              <option value="Santai / Ramah">Santai / Ramah</option>
+              <option value="Singkat & Padat">Singkat & Padat</option>
+              <option value="Fokus Penjualan">Fokus Penjualan</option>
+            </select>
           </div>
 
           <div class="space-y-1.5">
@@ -792,16 +976,147 @@ onMounted(() => {
           <Button 
             variant="ghost" 
             @click="showCreateModal = false"
+            :disabled="isSubmittingCreate"
           >
             Batal
           </Button>
           <Button 
             variant="primary" 
             @click="createAgent"
-            :disabled="!newAgentName.trim() || !newAgentRole.trim()"
+            :disabled="!newAgentName.trim() || !newAgentRole.trim() || isSubmittingCreate"
           >
-            Pasang Agen
+            {{ isSubmittingCreate ? 'Memasang...' : 'Pasang Agen' }}
           </Button>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Edit Agent Modal -->
+    <div 
+      v-if="showEditModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
+    >
+      <Card shadow="shadow-2xl" class="w-full max-w-md space-y-6 relative">
+        <button 
+          @click="showEditModal = false"
+          class="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors text-xl font-bold cursor-pointer"
+        >
+          &times;
+        </button>
+
+        <div>
+          <h3 class="text-base font-bold text-[#1c1917]">Ubah Profil Agen AI</h3>
+          <p class="text-stone-400 text-xs mt-1">Perbarui nama, spesialisasi peran, atau persona asisten Anda.</p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider">Nama Agen</label>
+            <input 
+              type="text" 
+              v-model="editAgentName" 
+              placeholder="contoh: Budi Sales"
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors font-semibold" 
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider">Spesialisasi / Peran</label>
+            <input 
+              type="text" 
+              v-model="editAgentRole" 
+              placeholder="contoh: Admin Sales & Lead Qualifier"
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none placeholder-stone-400 transition-colors font-semibold" 
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider">Gaya Bicara (Tone)</label>
+            <select 
+              v-model="editAgentTone"
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:border-stone-400 focus:outline-none transition-colors font-semibold"
+            >
+              <option value="Formal / Profesional">Formal / Profesional</option>
+              <option value="Santai / Ramah">Santai / Ramah</option>
+              <option value="Singkat & Padat">Singkat & Padat</option>
+              <option value="Fokus Penjualan">Fokus Penjualan</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider">URL Avatar (Opsional)</label>
+            <input 
+              type="text" 
+              v-model="editAgentAvatar" 
+              class="w-full bg-[#f5f5f4] border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-600 focus:border-stone-400 focus:outline-none font-mono transition-colors" 
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 pt-2">
+          <Button 
+            variant="ghost" 
+            @click="showEditModal = false"
+            :disabled="isSubmittingEdit"
+          >
+            Batal
+          </Button>
+          <Button 
+            variant="primary" 
+            @click="saveEditAgent"
+            :disabled="!editAgentName.trim() || !editAgentRole.trim() || isSubmittingEdit"
+          >
+            {{ isSubmittingEdit ? 'Menyimpan...' : 'Simpan Perubahan' }}
+          </Button>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div 
+      v-if="showDeleteModal && agentToDelete" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
+    >
+      <Card shadow="shadow-2xl" class="w-full max-w-sm space-y-5 relative">
+        <button 
+          @click="showDeleteModal = false"
+          class="absolute top-4 right-4 text-stone-400 hover:text-stone-600 transition-colors text-xl font-bold cursor-pointer"
+        >
+          &times;
+        </button>
+
+        <div class="flex items-center space-x-3.5 text-rose-600">
+          <div class="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center flex-shrink-0">
+            <SvgIcon name="trash" className="w-5 h-5 text-rose-600" />
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-[#1c1917]">Hapus Agen AI?</h3>
+            <p class="text-stone-400 text-[11px] mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
+          </div>
+        </div>
+
+        <div class="bg-rose-50/70 border border-rose-200/80 rounded-xl p-3 text-xs text-rose-800 space-y-1">
+          <p>
+            Anda akan menghapus agen <strong>{{ agentToDelete.name }}</strong> ({{ agentToDelete.role }}). Agen ini akan dihapus secara permanen dari akun Anda.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-1">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            @click="showDeleteModal = false"
+            :disabled="isSubmittingDelete"
+          >
+            Batal
+          </Button>
+          <button 
+            @click="confirmDeleteAgent"
+            :disabled="isSubmittingDelete"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {{ isSubmittingDelete ? 'Menghapus...' : 'Ya, Hapus Agen' }}
+          </button>
         </div>
       </Card>
     </div>

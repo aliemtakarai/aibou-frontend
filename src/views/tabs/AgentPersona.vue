@@ -1,25 +1,62 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { mockAgents } from '../../utils/mockData'
+import { agentsService } from '../../services/agents'
+import { useAuthStore } from '../../stores/auth'
 import SvgIcon from '../../components/ui/SvgIcon.vue'
 import Card from '../../components/ui/Card.vue'
 import Button from '../../components/ui/Button.vue'
 import ToastNotification from '../../components/ui/ToastNotification.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const agentId = computed(() => route.params.id as string)
 const agent = computed(() => mockAgents.value.find(a => a.id === agentId.value))
 
 const tone = ref('Formal / Profesional')
 const secondaryLanguage = ref('English')
-const guardrails = ref([
+const guardrails = ref<string[]>([
   'Jangan memberikan harga di bawah standar SOP.',
   'Selalu gunakan sapaan ramah di awal kalimat.',
   'Jangan menjanjikan garansi produk melebihi 1 tahun.'
 ])
 const newGuardrail = ref('')
 const showToast = ref(false)
+const isSaving = ref(false)
+const isLoading = ref(!agent.value)
+
+const syncFromAgent = () => {
+  if (agent.value) {
+    if (agent.value.tone) tone.value = agent.value.tone
+    if (agent.value.secondary_language) secondaryLanguage.value = agent.value.secondary_language
+    if (Array.isArray(agent.value.guardrails)) {
+      guardrails.value = [...agent.value.guardrails]
+    }
+  }
+}
+
+watch(agent, () => {
+  syncFromAgent()
+}, { immediate: true })
+
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const fetched = await agentsService.getAgent(agentId.value, authStore.token)
+    const idx = mockAgents.value.findIndex(a => a.id === fetched.id)
+    if (idx !== -1) {
+      mockAgents.value[idx] = fetched
+    } else {
+      mockAgents.value.push(fetched)
+    }
+    syncFromAgent()
+  } catch (err: any) {
+    console.warn('Gagal memuat persona agen dari server:', err?.message)
+  } finally {
+    isLoading.value = false
+  }
+})
 
 const addGuardrail = () => {
   if (newGuardrail.value.trim()) {
@@ -32,12 +69,36 @@ const removeGuardrail = (index: number) => {
   guardrails.value.splice(index, 1)
 }
 
-const saveSettings = () => {
-  showToast.value = true
-  setTimeout(() => {
-    showToast.value = false
-  }, 3000)
+const saveSettings = async () => {
+  if (!agent.value || isSaving.value) return
+  isSaving.value = true
+  try {
+    const updated = await agentsService.updateAgent(agentId.value, {
+      name: agent.value.name,
+      role: agent.value.role,
+      avatar: agent.value.avatar,
+      tone: tone.value,
+      secondary_language: secondaryLanguage.value,
+      guardrails: guardrails.value,
+    }, authStore.token)
+
+    if (agent.value) {
+      agent.value.tone = updated.tone
+      agent.value.secondary_language = updated.secondary_language
+      agent.value.guardrails = updated.guardrails
+    }
+
+    showToast.value = true
+    setTimeout(() => {
+      showToast.value = false
+    }, 3000)
+  } catch (err: any) {
+    alert(err?.message || 'Gagal menyimpan konfigurasi kepribadian agen.')
+  } finally {
+    isSaving.value = false
+  }
 }
+
 
 const tones = [
   { 
@@ -90,7 +151,11 @@ const safetyStatus = computed(() => {
 </script>
 
 <template>
-  <div class="w-full space-y-8 relative" v-if="agent">
+  <div v-if="isLoading && !agent" class="w-full py-20 flex flex-col items-center justify-center space-y-3">
+    <div class="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+    <span class="text-xs text-stone-500 font-semibold">Memuat konfigurasi persona agen dari server...</span>
+  </div>
+  <div class="w-full space-y-8 relative" v-else-if="agent">
     <!-- Toast Notification -->
     <ToastNotification 
       v-model:show="showToast"
@@ -120,8 +185,9 @@ const safetyStatus = computed(() => {
           @click="saveSettings" 
           variant="primary"
           class="w-full md:w-auto"
+          :disabled="isSaving"
         >
-          <span>Simpan & Terapkan</span>
+          <span>{{ isSaving ? 'Menyimpan...' : 'Simpan & Terapkan' }}</span>
         </Button>
       </div>
     </div>
@@ -412,8 +478,9 @@ const safetyStatus = computed(() => {
       <Button 
         @click="saveSettings" 
         class="w-full sm:w-auto text-center"
+        :disabled="isSaving"
       >
-        Simpan & Terapkan Perubahan
+        {{ isSaving ? 'Menyimpan...' : 'Simpan & Terapkan Perubahan' }}
       </Button>
     </Card>
   </div>

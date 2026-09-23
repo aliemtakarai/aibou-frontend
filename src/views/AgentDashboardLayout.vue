@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { mockAgents, mockTokenQuota } from '../utils/mockData'
+import { agentsService } from '../services/agents'
+import { useAuthStore } from '../stores/auth'
 import SvgIcon from '../components/ui/SvgIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const agentId = computed(() => route.params.id as string)
 
@@ -13,8 +16,35 @@ const agent = computed(() => {
   return mockAgents.value.find(a => a.id === agentId.value)
 })
 
+onMounted(async () => {
+  try {
+    const fetched = await agentsService.getAgent(agentId.value, authStore.token)
+    const idx = mockAgents.value.findIndex(a => a.id === fetched.id)
+    if (idx !== -1) {
+      mockAgents.value[idx] = fetched
+    } else {
+      mockAgents.value.push(fetched)
+    }
+  } catch (e: any) {
+    console.warn('Gagal memuat agen pada layout:', e?.message || e)
+    // If not found in cache and fails to fetch from API, try fetching all user agents
+    try {
+      const all = await agentsService.fetchAgents({}, authStore.token)
+      mockAgents.value = all
+    } catch {}
+  }
+})
+
 const agentTokenUsage = computed(() => {
-  return mockTokenQuota.value.agentUsage[agentId.value]
+  return mockTokenQuota.value.agentUsage[agentId.value] || {
+    agentId: agentId.value,
+    agentName: agent.value?.name || 'Asisten',
+    tokensUsed: 0,
+    tokenLimit: 500000,
+    promptTokens: 0,
+    completionTokens: 0,
+    conversationsCount: 0
+  }
 })
 
 const agentUsagePercent = computed(() => {

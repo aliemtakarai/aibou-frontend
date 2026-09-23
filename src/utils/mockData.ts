@@ -2,9 +2,16 @@ import { ref } from 'vue'
 
 export interface Agent {
   id: string
+  user_id?: number
   name: string
   role: string
   avatar: string
+  tone?: string
+  secondary_language?: string
+  guardrails?: string[]
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface AgentSchedule {
@@ -56,27 +63,12 @@ export interface SandboxDebug {
   variables: Record<string, string>
 }
 
-// 1. Mock Agents
-export const mockAgents = ref<Agent[]>([
-  {
-    id: 'budi-sales',
-    name: 'Budi',
-    role: 'Admin Sales & Lead Qualifier',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80'
-  },
-  {
-    id: 'siti-support',
-    name: 'Siti',
-    role: 'Customer Support FAQ Officer',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80'
-  },
-  {
-    id: 'andi-tech',
-    name: 'Andi',
-    role: 'IT Troubleshooter',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80'
-  }
-])
+export const BUDI_UUID = '11111111-1111-4111-8111-111111111111'
+export const SITI_UUID = '22222222-2222-4222-8222-222222222222'
+export const ANDI_UUID = '33333333-3333-4333-8333-333333333333'
+
+// 1. Central Agents In-Memory Cache (populated dynamically from real backend API /api/v1/agents)
+export const mockAgents = ref<Agent[]>([])
 
 // 2. Mock Schedules per Agent
 export const mockSchedules = ref<Record<string, AgentSchedule>>({
@@ -113,6 +105,17 @@ export const mockSchedules = ref<Record<string, AgentSchedule>>({
 for (const key in mockSchedules.value) {
   mockSchedules.value[key].sync_frequency = 'daily'
   mockSchedules.value[key].sync_cron = '0 2 * * *'
+}
+
+// Alias schedules to UUIDs
+if (mockSchedules.value['budi-sales']) {
+  mockSchedules.value[BUDI_UUID] = { ...mockSchedules.value['budi-sales'], agent_id: BUDI_UUID }
+}
+if (mockSchedules.value['siti-support']) {
+  mockSchedules.value[SITI_UUID] = { ...mockSchedules.value['siti-support'], agent_id: SITI_UUID }
+}
+if (mockSchedules.value['andi-tech']) {
+  mockSchedules.value[ANDI_UUID] = { ...mockSchedules.value['andi-tech'], agent_id: ANDI_UUID }
 }
 
 // 3. Mock Conversations for Live Inbox
@@ -207,6 +210,11 @@ export const mockConversations = ref<Record<string, Conversation[]>>({
   ],
   'andi-tech': []
 })
+
+// Alias conversations to UUIDs
+mockConversations.value[BUDI_UUID] = mockConversations.value['budi-sales']
+mockConversations.value[SITI_UUID] = mockConversations.value['siti-support']
+mockConversations.value[ANDI_UUID] = mockConversations.value['andi-tech']
 
 // 4. Mock Playground Sandbox Responses
 export const mockPlaygroundResponses = [
@@ -481,6 +489,11 @@ export const mockAgentToolSettings = ref<Record<string, Record<string, AgentTool
   }
 })
 
+// Alias agent tool settings to UUIDs
+mockAgentToolSettings.value[BUDI_UUID] = mockAgentToolSettings.value['budi-sales']
+mockAgentToolSettings.value[SITI_UUID] = mockAgentToolSettings.value['siti-support']
+mockAgentToolSettings.value[ANDI_UUID] = mockAgentToolSettings.value['andi-tech']
+
 // Helper functions for tool connection management at the workspace level
 export const connectMarketplaceTool = (toolId: string, details: Partial<MarketplaceTool['connectionDetails']>) => {
   const tool = mockMarketplaceTools.value.find(t => t.id === toolId)
@@ -634,6 +647,26 @@ export const mockTokenQuota = ref<WorkspaceTokenQuota>({
     }
   }
 })
+
+// Alias agent token usage to UUIDs
+if (mockTokenQuota.value.agentUsage['budi-sales']) {
+  mockTokenQuota.value.agentUsage[BUDI_UUID] = {
+    ...mockTokenQuota.value.agentUsage['budi-sales'],
+    agentId: BUDI_UUID
+  }
+}
+if (mockTokenQuota.value.agentUsage['siti-support']) {
+  mockTokenQuota.value.agentUsage[SITI_UUID] = {
+    ...mockTokenQuota.value.agentUsage['siti-support'],
+    agentId: SITI_UUID
+  }
+}
+if (mockTokenQuota.value.agentUsage['andi-tech']) {
+  mockTokenQuota.value.agentUsage[ANDI_UUID] = {
+    ...mockTokenQuota.value.agentUsage['andi-tech'],
+    agentId: ANDI_UUID
+  }
+}
 
 export const topUpTokens = (amount: number) => {
   mockTokenQuota.value.monthlyLimit += amount
