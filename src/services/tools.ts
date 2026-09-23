@@ -77,7 +77,7 @@ function getAuthHeaders(token?: string | null): Record<string, string> {
 
 export const toolsService = {
   /**
-   * Fetch all marketplace tools from backend (Admin only).
+   * Fetch all marketplace tools from backend.
    */
   async fetchTools(params?: { search?: string; category?: string }, token?: string | null): Promise<MarketplaceTool[]> {
     const targetUrl = buildToolUrl('', {
@@ -91,10 +91,10 @@ export const toolsService = {
     })
 
     if (response.status === 403) {
-      throw new Error('Akses ditolak: Operasi ini memerlukan hak akses Administrator (Admin).')
+      throw new Error('Akses ditolak: Anda tidak memiliki izin untuk melihat alat.')
     }
     if (response.status === 401) {
-      throw new Error('Sesi telah berakhir atau token admin diperlukan.')
+      throw new Error('Sesi telah berakhir atau Anda belum login.')
     }
 
     if (!response.ok) {
@@ -107,7 +107,7 @@ export const toolsService = {
   },
 
   /**
-   * Get detail for a specific tool (Admin only).
+   * Get detail for a specific tool.
    */
   async getTool(id: string, token?: string | null): Promise<MarketplaceTool> {
     const targetUrl = buildToolUrl(`/${encodeURIComponent(id)}`)
@@ -117,10 +117,10 @@ export const toolsService = {
     })
 
     if (response.status === 403) {
-      throw new Error('Akses ditolak: Operasi ini memerlukan hak akses Administrator (Admin).')
+      throw new Error('Akses ditolak: Anda tidak memiliki izin untuk melihat alat.')
     }
     if (response.status === 401) {
-      throw new Error('Sesi telah berakhir atau token admin diperlukan.')
+      throw new Error('Sesi telah berakhir atau Anda belum login.')
     }
 
     if (!response.ok) {

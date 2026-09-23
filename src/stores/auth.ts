@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
   const errorMessage = ref<string>('')
 
   const isAuthenticated = computed(() => Boolean(token.value && user.value))
-  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isAdmin = computed(() => user.value?.role?.toLowerCase() === 'admin')
 
   const userInitials = computed(() => {
     if (!user.value?.full_name) return 'AI'

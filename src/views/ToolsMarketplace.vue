@@ -192,6 +192,13 @@ const testConnection = (tool?: MarketplaceTool) => {
 
 // Save connection config
 const saveConnection = () => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya akun Administrator yang dapat menyimpan konfigurasi koneksi.'
+    showToast.value = true
+    return
+  }
+
   if (!selectedTool.value) return
 
   const toolId = selectedTool.value.id
@@ -250,6 +257,13 @@ const saveConnection = () => {
 
 // Disconnect connection
 const handleDisconnect = () => {
+  if (!authStore.isAdmin) {
+    toastTitle.value = 'Akses Ditolak'
+    toastMessage.value = 'Hanya akun Administrator yang dapat memutuskan koneksi.'
+    showToast.value = true
+    return
+  }
+
   if (!selectedTool.value) return
   const toolName = selectedTool.value.name
   disconnectMarketplaceTool(selectedTool.value.id)
@@ -655,7 +669,7 @@ const handleDeleteTool = async () => {
         </div>
 
         <div class="flex items-center space-x-3">
-          <!-- Admin Action: Tambah Tool Baru -->
+          <!-- Admin Action: Tambah Tool Baru (Hidden if not admin) -->
           <Button 
             v-if="authStore.isAdmin"
             @click="openCreateToolModal"
@@ -666,14 +680,6 @@ const handleDeleteTool = async () => {
             <SvgIcon name="plus" className="w-3.5 h-3.5 mr-1.5" />
             <span>Tambah Tool Baru</span>
           </Button>
-          <div 
-            v-else 
-            class="flex items-center space-x-1.5 bg-stone-100 text-stone-500 border border-stone-200 px-3 py-2 rounded-xl text-xs font-semibold select-none"
-            title="Akses CRUD (Tambah, Edit, Hapus) terbatas untuk Administrator"
-          >
-            <SvgIcon name="lock" className="w-3.5 h-3.5 text-stone-400" />
-            <span>Mode Pengguna (CRUD Terkunci)</span>
-          </div>
 
           <router-link to="/agents">
             <Button variant="secondary" size="md">
@@ -946,7 +952,7 @@ const handleDeleteTool = async () => {
 
                   <!-- Connect / Manage Button -->
                   <Button 
-                    v-if="tool.requiresConnection"
+                    v-if="authStore.isAdmin && tool.requiresConnection"
                     @click="openConnectionSetup(tool)"
                     :variant="tool.connectionStatus === 'connected' ? 'secondary' : 'primary'"
                     size="sm"
@@ -954,6 +960,16 @@ const handleDeleteTool = async () => {
                     <SvgIcon :name="tool.connectionStatus === 'connected' ? 'cog' : 'plug'" className="w-3.5 h-3.5 mr-1" />
                     <span v-if="tool.connectionStatus === 'connected'">Kelola Koneksi</span>
                     <span v-else>Atur Koneksi</span>
+                  </Button>
+
+                  <Button 
+                    v-else-if="tool.requiresConnection"
+                    @click="openConnectionSetup(tool)"
+                    variant="secondary"
+                    size="sm"
+                  >
+                    <SvgIcon name="sliders" className="w-3.5 h-3.5 mr-1 text-stone-500" />
+                    <span>Detail Koneksi</span>
                   </Button>
 
                   <span v-else class="text-[11px] font-bold text-stone-400 bg-stone-100 px-3 py-1.5 rounded-xl">
@@ -1064,10 +1080,16 @@ const handleDeleteTool = async () => {
           <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
             
             <!-- Explanatory note -->
-            <div class="bg-amber-50/80 border border-amber-200/90 p-3.5 rounded-2xl flex items-start space-x-3 text-amber-950">
+            <div v-if="authStore.isAdmin" class="bg-amber-50/80 border border-amber-200/90 p-3.5 rounded-2xl flex items-start space-x-3 text-amber-950">
               <SvgIcon name="shield" className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <p class="text-[11px] leading-relaxed">
                 <strong>Koneksi Workspace Terpusat:</strong> Anda sedang mengatur kredensial dan otentikasi level organisasi. Setelah terhubung, kredensial ini aman dan digunakan bersama oleh agen-agen yang diizinkan.
+              </p>
+            </div>
+            <div v-else class="bg-stone-100 border border-stone-200 p-3.5 rounded-2xl flex items-start space-x-3 text-stone-600">
+              <SvgIcon name="lock" className="w-5 h-5 text-stone-400 flex-shrink-0 mt-0.5" />
+              <p class="text-[11px] leading-relaxed">
+                <strong>Mode Tinjauan (Hanya Baca):</strong> Konfigurasi dan perubahan kredensial koneksi tingkat organisasi hanya dapat dilakukan oleh Administrator.
               </p>
             </div>
 
@@ -1118,7 +1140,8 @@ const handleDeleteTool = async () => {
                   <input 
                     type="email" 
                     v-model="modalAccount" 
-                    class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs text-[#1c1917] font-semibold"
+                    :disabled="!authStore.isAdmin"
+                    class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs text-[#1c1917] font-semibold disabled:bg-stone-100 disabled:cursor-not-allowed"
                     placeholder="admin@aibou-enterprise.id"
                   />
                   <p class="text-[9.5px] text-stone-400">Akun ini memiliki hak akses untuk membuat dan mengedit spreadsheet tim.</p>
@@ -1133,7 +1156,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalEndpoint" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="https://api.n8n.cloud/webhook/..."
                 />
               </div>
@@ -1143,7 +1167,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="password" 
                   v-model="modalSecretKey" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="whsec_••••••••"
                 />
               </div>
@@ -1172,7 +1197,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalPhoneId" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="WA-PHONE-6281234567890"
                 />
               </div>
@@ -1182,7 +1208,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalWabaId" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="WABA-9988127391"
                 />
               </div>
@@ -1194,7 +1221,8 @@ const handleDeleteTool = async () => {
                 <label class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">Environment Midtrans</label>
                 <select 
                   v-model="modalEnvironment" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                 >
                   <option value="Sandbox">Sandbox (Uji Coba)</option>
                   <option value="Production">Production (Live)</option>
@@ -1206,7 +1234,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalMerchantId" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono font-semibold text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="M109281"
                 />
               </div>
@@ -1216,7 +1245,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="password" 
                   v-model="modalServerKey" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="SB-Mid-server-••••••••"
                 />
               </div>
@@ -1229,7 +1259,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalHostUrl" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="https://n8n.my-business.internal"
                 />
               </div>
@@ -1239,7 +1270,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="password" 
                   v-model="modalApiKey" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="n8n_api_••••••••"
                 />
               </div>
@@ -1252,7 +1284,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalSlackWebhook" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="https://hooks.slack.com/services/..."
                 />
               </div>
@@ -1262,7 +1295,8 @@ const handleDeleteTool = async () => {
                 <input 
                   type="text" 
                   v-model="modalSlackChannel" 
-                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs text-[#1c1917]"
+                  :disabled="!authStore.isAdmin"
+                  class="w-full bg-white border border-stone-200 focus:border-stone-400 rounded-xl px-3.5 py-2.5 text-xs text-[#1c1917] disabled:bg-stone-100 disabled:cursor-not-allowed"
                   placeholder="#ai-leads"
                 />
               </div>
@@ -1274,7 +1308,7 @@ const handleDeleteTool = async () => {
           <div class="p-5 border-t border-stone-200/80 bg-stone-50/80 flex items-center justify-between">
             <div>
               <Button 
-                v-if="selectedTool.connectionStatus === 'connected'"
+                v-if="authStore.isAdmin && selectedTool.connectionStatus === 'connected'"
                 @click="handleDisconnect"
                 variant="danger"
                 size="sm"
@@ -1289,9 +1323,10 @@ const handleDeleteTool = async () => {
                 size="sm"
                 @click="showConnectionModal = false"
               >
-                Batal
+                {{ authStore.isAdmin ? 'Batal' : 'Tutup' }}
               </Button>
               <Button 
+                v-if="authStore.isAdmin"
                 variant="primary" 
                 size="sm"
                 @click="saveConnection"
